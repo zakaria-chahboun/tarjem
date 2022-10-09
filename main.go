@@ -372,7 +372,7 @@ func parse(messages []Message) error {
 					}
 				}
 				if counter == 0 {
-					return errors.New(fmt.Sprintf("in 'Code=%v' you miss the to add variable '%v' to template '%v'", m.Code, variable, lang))
+					return errors.New(fmt.Sprintf("in 'Code=%v' you miss to add the variable '%v' to template '%v'", m.Code, variable, lang))
 				}
 			}
 			// in case the parameter doesn't exist in variables
