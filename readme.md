@@ -137,7 +137,7 @@ func CreateErrStockLimitExceeded(
 	case "arabic":
 		m.Message = fmt.Sprintf("تم تجاوز حد المخزون! لم يتبقى سوى %d من مخزون %s.", quantity, name)
 	case "english":
-		m.Message = fmt.Sprintf("Stock limit exceeded! Only %d left in stock %s %s.", quantity, name, name)
+		m.Message = fmt.Sprintf("Stock limit exceeded! Only %d left in stock %s.", quantity, name)
 	}
 	return
 }
