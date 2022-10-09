@@ -1,0 +1,22 @@
+[[Messages]]
+Code = "err_user_access_denied"
+Status = "danger"
+[Messages.Templates]
+english = "Incorrect Username or Password! Try again."
+arabic = "إسم المستخدم أو كلمة المرور غير صحيحة! حاول من جديد."
+
+[[Messages]]
+Code = "last_date_bill_pay"
+Status = "info"
+Variables = {date="datetime"}
+[Messages.Templates]
+english = "The last date for paying bills is {date}."
+arabic = "آخر أجل لتستديد الفواتير هو {date}"
+
+[[Messages]]
+Code = "err_stock_limit_exceeded"
+Status = "warning"
+Variables = {name="string", quantity="int"}
+[Messages.Templates]
+english = "Stock limit exceeded! Only {quantity} left in stock {name}."
+arabic = "تم تجاوز حد المخزون! لم يتبقى سوى {quantity} من مخزون {name}."

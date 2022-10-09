@@ -1,0 +1,80 @@
+package messages
+
+import (
+  "fmt"
+  "time"
+)
+
+type Message struct {
+  Code string
+  Status string
+  Message string
+}
+
+/* new type */
+type lang string
+
+/* to store locally the currect languege used in app */
+var currectLang lang
+
+/* to set the currect languege used in app */
+func SetCurrectLang(languege lang) {
+  currectLang = languege
+}
+
+/* enum: Message.Code */
+const (
+{{range .Messages -}}
+  {{.Code | rename_code}} = "{{.Code}}"
+{{end -}}
+)
+
+{{if ne (len .Statuses) 0 -}}
+/* enum: Message.Status */
+  const (
+    {{range .Statuses -}}
+      Status{{. | title_case | trim}} = "{{.}}"
+    {{end -}}
+  )
+{{end -}}
+
+/* enum: Message.Templates.{lang} */
+const (
+{{range .Langs -}}
+  Lang{{. | title_case}} lang = "{{.}}"
+{{end -}}
+)
+
+{{range $obj := .Messages}}
+  func Create{{$obj.Code | rename_code}}(
+  {{range $k, $v := $obj.Variables -}}
+    {{$k}} {{$v | rename_type}},
+  {{end -}}
+  ) (m *Message) {
+     m = &Message{}
+     m.Code = {{$obj.Code | rename_code}}
+     {{$blank := is_blank $obj.Status -}}
+     {{if eq $blank false -}}
+      m.Status = Status{{$obj.Status | title_case | trim}}
+     {{end -}}
+    {{if eq (len $obj.Variables) 0 -}}
+      switch string(currectLang) {
+        {{range $lang, $template := $obj.Templates -}}
+          case "{{$lang}}":  
+            m.Message = fmt.Sprintf("{{$template}}")
+        {{end -}}
+      }
+    {{else -}}
+      switch string(currectLang) {
+        {{range $lang, $template := $obj.Templates -}}
+        {{$new_template := replace_params $template $obj.Variables -}}
+        {{$params := correct_params $template $obj.Variables -}}
+          case "{{$lang}}":  
+          m.Message = fmt.Sprintf("{{$new_template}}", {{join $params ","}})
+        {{end -}}
+      }
+    {{end -}}
+    return
+  }
+{{end}}
+
