@@ -59,7 +59,8 @@ func init() {
 
 	/* flag = -init */
 	if *Init {
-		createTomlInitFile()
+		err := createTomlInitFile()
+		cute.Check("Create Toml Init File", err)
 		cute.Println("Created", toml_path)
 		os.Exit(0)
 	}
@@ -77,8 +78,9 @@ func init() {
 	/* check if messages.toml exist */
 	_, err := os.Stat(toml_path)
 	if err != nil {
-		cute.Println(
-			"Warning",
+		cute.SetMessageColor(cute.ColorBrightBlue)
+		cute.Printlines(
+			"oops!",
 			`"messages.toml" file not found!`,
 			"try: genmessage -init",
 			"help: genmessage -h",
