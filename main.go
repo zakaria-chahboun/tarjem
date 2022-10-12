@@ -14,6 +14,7 @@ import (
 	"text/template"
 
 	"github.com/BurntSushi/toml"
+	"github.com/zakaria-chahboun/cute"
 )
 
 type Message struct {
@@ -59,7 +60,7 @@ func init() {
 	/* flag = -init */
 	if *Init {
 		createTomlInitFile()
-		fmt.Println(toml_path, "is created.")
+		cute.Println("Created", toml_path)
 		os.Exit(0)
 	}
 	/* flag = -h */
@@ -76,9 +77,12 @@ func init() {
 	/* check if messages.toml exist */
 	_, err := os.Stat(toml_path)
 	if err != nil {
-		fmt.Println(`"messages.toml" file not found!`)
-		fmt.Printf("try: %v -init\n", os.Args[0])
-		fmt.Printf("help: %v -h\n", os.Args[0])
+		cute.Println(
+			"Warning",
+			`"messages.toml" file not found!`,
+			"try: genmessage -init",
+			"help: genmessage -h",
+		)
 		os.Exit(1)
 	}
 }
@@ -101,11 +105,11 @@ func main() {
 
 	// load messages file
 	messages, err := LoadTranslationsFromTOML(toml_path)
-	check("load translations from messages.toml file", err)
+	cute.Check("load translations from messages.toml file", err)
 
 	// parse messages
 	err = parse(messages)
-	check("parse messages.toml file", err)
+	cute.Check("parse messages.toml file", err)
 
 	// send data to template
 	var blob bytes.Buffer
@@ -124,18 +128,18 @@ func main() {
 		TimeFormat:     time_format,
 		DateTimeFormat: date_format,
 	})
-	check("handle template", err)
+	cute.Check("handle template", err)
 
 	// go format
 	page, err := format.Source(blob.Bytes())
-	check("go format", err)
+	cute.Check("go format", err)
 
 	// save template with values as a go file (.go)
 	err = saveToFile(*ExportName, page)
-	check(fmt.Sprintf("export %s file", *ExportName), err)
+	cute.Check(fmt.Sprintf("export %s file", *ExportName), err)
 
 	// done
-	fmt.Println("done!")
+	cute.Println("done!")
 }
 
 /* rename code: (e.g) "user_is_out" to "UserIsOut" */
@@ -391,41 +395,6 @@ func parse(messages []Message) error {
 		}
 	}
 	return nil
-}
-
-func check(title string, err error) {
-	colorReset := "\033[0m"
-	colorRed := "\033[31m"
-	colorYellow := "\033[33m"
-	//colorGreen := "\033[32m"
-	//colorBlue := "\033[34m"
-	//colorPurple := "\033[35m"
-	//colorCyan := "\033[36m"
-	//colorWhite := "\033[37m"
-
-	if err != nil {
-		topright := "╮"
-		topleft := "╭"
-		w := "─"
-		h := "│"
-		bottomright := "╯"
-		bottomleft := "╰"
-
-		// draw line
-		var line = ""
-		for i := 0; i < len(title)+2; i++ {
-			line += w
-		}
-
-		// print title box
-		fmt.Printf("%v%v%v%v\n", colorYellow, topleft, line, topright)
-		fmt.Printf("%v%v %v %v\n", colorYellow, h, title, h)
-		fmt.Printf("%v%v%v%v\n", colorYellow, bottomleft, line, bottomright)
-		// print error message
-		fmt.Printf("%v%v\n", colorRed, err)
-		fmt.Printf("%v\n", colorReset)
-		os.Exit(1)
-	}
 }
 
 /* load translations from toml file and cast it to '[]Message' struct */

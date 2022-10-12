@@ -1,2 +1,4 @@
 github.com/BurntSushi/toml v1.2.0 h1:Rt8g24XnyGTyglgET/PRUNlrUeu9F5L+7FilkXfZgs0=
 github.com/BurntSushi/toml v1.2.0/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
+github.com/zakaria-chahboun/cute v1.0.2 h1:IOhPs/BNc7UnDBFY2EL8b9ve35HtZ12XymziCutk1RA=
+github.com/zakaria-chahboun/cute v1.0.2/go.mod h1:RAmXt97oqG8Hdfnz1lWq8D3XNGEwgijeM0H5ubREFIc=
