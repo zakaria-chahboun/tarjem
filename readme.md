@@ -6,7 +6,7 @@ you only have to fill the `messages.toml` file.
 
 #### Installation
 ```bash
-go install github.com/zakaria-chahboun/genmessage
+go install github.com/zakaria-chahboun/genmessage@latest
 ```
 #### Usage
 You have to create a `messages.toml` file, example:
