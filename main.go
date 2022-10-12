@@ -54,6 +54,7 @@ func init() {
 	ExportName = flag.String("export", "./messages.go", "Name of the exported file without specifying the (.go) extension.")
 	Init = flag.Bool("init", false, "Create the messages.toml file.")
 	help := flag.Bool("h", false, "help")
+	version := flag.Bool("v", false, "version.")
 
 	flag.Parse()
 
@@ -69,6 +70,14 @@ func init() {
 		flag.PrintDefaults()
 		os.Exit(0)
 	}
+	/*
+	 flag = -v
+	 Note: always check "git tag --sort=-version:refname | head -n 1"
+	*/
+	if *version {
+		cute.Println("Version", "v1.0.3")
+		os.Exit(0)
+	}
 	/* flag = -export */
 	ext := filepath.Ext(*ExportName)
 	if ext != ".go" {
@@ -76,7 +85,7 @@ func init() {
 	}
 
 	/* check if messages.toml exist */
-	_, err := os.Stat(toml_path)
+	_, err = os.Stat(toml_path)
 	if err != nil {
 		cute.SetMessageColor(cute.ColorBrightBlue)
 		cute.Printlines(
