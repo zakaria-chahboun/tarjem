@@ -85,7 +85,7 @@ func init() {
 	}
 
 	/* check if messages.toml exist */
-	_, err = os.Stat(toml_path)
+	_, err := os.Stat(toml_path)
 	if err != nil {
 		cute.SetMessageColor(cute.ColorBrightBlue)
 		cute.Printlines(
