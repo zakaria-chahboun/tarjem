@@ -25,7 +25,7 @@ type Message struct {
 }
 
 const (
-	template_parameter_regex = `\{(\w+)\}` // (e.g) {name} ot or {post1} or {user_name}
+	template_placeholder_regex = `\{(\w+)\}` // (e.g) {name} ot or {post1} or {user_name}
 
 	date_format     = "2006-01-02"          // YYYY-MM-DD
 	time_format     = "15:04:05"            // hh:mm:ss
@@ -75,7 +75,7 @@ func init() {
 	 Note: always check "git tag --sort=-version:refname | head -n 1"
 	*/
 	if *version {
-		cute.Println("Version", "v1.0.3")
+		cute.Println("Version", "v1.0.4")
 		os.Exit(0)
 	}
 	/* flag = -export */
@@ -101,14 +101,14 @@ func init() {
 func main() {
 	// functions to be used inside the template file
 	my_funcs := template.FuncMap{
-		"rename_code":    renameCode,
-		"rename_type":    renameType,
-		"title_case":     strings.Title,
-		"join":           strings.Join,
-		"trim":           strings.TrimSpace,
-		"is_blank":       isBlank,
-		"correct_params": correctParameters,
-		"replace_params": replaceTemplateParamWithSymbol,
+		"rename_code":          renameCode,
+		"rename_type":          renameType,
+		"title_case":           strings.Title,
+		"join":                 strings.Join,
+		"trim":                 strings.TrimSpace,
+		"is_blank":             isBlank,
+		"correct_placeholders": correctPlaceholders,
+		"replace_placeholders": replacePlaceholdersWithSymbol,
 	}
 
 	// parse template file
@@ -223,34 +223,34 @@ func getUniqueLangs(ms []Message) (langs []string) {
 	return
 }
 
-/* get all parameters of a template in order (not unique) */
-func getTemplateParamaters(template string) (params []string) {
-	re1 := regexp.MustCompile(template_parameter_regex) // Prepare our regex
+/* get all placeholders of a template in order (not unique) */
+func getPlaceholders(template string) (placeholders []string) {
+	re1 := regexp.MustCompile(template_placeholder_regex) // Prepare our regex
 	result_slice := re1.FindAllStringSubmatch(template, -1)
 	for _, v := range result_slice {
-		params = append(params, v[1])
+		placeholders = append(placeholders, v[1])
 	}
 	return
 }
 
-/* replace all parameters of a template with symbols: (e.g) "User {name} has {age} years old" to "User %s has %d years old" */
-func replaceTemplateParamWithSymbol(template string, variables map[string]string) (new_template string) {
-	params := getTemplateParamaters(template)
+/* replace all placeholders of a template with symbols: (e.g) "User {name} has {age} years old" to "User %s has %d years old" */
+func replacePlaceholdersWithSymbol(template string, variables map[string]string) (new_template string) {
+	placeholders := getPlaceholders(template)
 	new_template = template
-	for _, param := range params {
+	for _, placeh := range placeholders {
 		for variable, _type := range variables {
-			if param == variable {
+			if placeh == variable {
 				switch _type {
 				case "int", "int32", "int64":
-					new_template = strings.ReplaceAll(new_template, "{"+param+"}", "%d")
+					new_template = strings.ReplaceAll(new_template, "{"+placeh+"}", "%d")
 				case "string":
-					new_template = strings.ReplaceAll(new_template, "{"+param+"}", "%s")
+					new_template = strings.ReplaceAll(new_template, "{"+placeh+"}", "%s")
 				case "date", "time", "datatime":
-					new_template = strings.ReplaceAll(new_template, "{"+param+"}", "%s")
+					new_template = strings.ReplaceAll(new_template, "{"+placeh+"}", "%s")
 				case "float", "float32", "float64":
-					new_template = strings.ReplaceAll(new_template, "{"+param+"}", "%.2f")
+					new_template = strings.ReplaceAll(new_template, "{"+placeh+"}", "%.2f")
 				default:
-					new_template = strings.ReplaceAll(template, "{"+param+"}", "%v")
+					new_template = strings.ReplaceAll(template, "{"+placeh+"}", "%v")
 				}
 			}
 		}
@@ -258,20 +258,20 @@ func replaceTemplateParamWithSymbol(template string, variables map[string]string
 	return
 }
 
-/* correct parameters of a template: (e.g) "birthday" to "birthday.Format(datetime_format)" */
-func correctParameters(template string, variables map[string]string) (correct_params []string) {
-	params := getTemplateParamaters(template)
-	correct_params = params
-	for i, param := range params {
+/* correct placeholders of a template: (e.g) "birthday" to "birthday.Format(datetime_format)" */
+func correctPlaceholders(template string, variables map[string]string) (correct_placeholders []string) {
+	placeholders := getPlaceholders(template)
+	correct_placeholders = placeholders
+	for i, placeh := range placeholders {
 		for variable, _type := range variables {
-			if param == variable {
+			if placeh == variable {
 				switch _type {
 				case "date":
-					correct_params[i] = param + `.Format("` + date_format + `")`
+					correct_placeholders[i] = placeh + `.Format("` + date_format + `")`
 				case "time":
-					correct_params[i] = param + `.Format("` + time_format + `")`
+					correct_placeholders[i] = placeh + `.Format("` + time_format + `")`
 				case "datetime":
-					correct_params[i] = param + `.Format("` + datetime_format + `")`
+					correct_placeholders[i] = placeh + `.Format("` + datetime_format + `")`
 				}
 			}
 		}
@@ -336,7 +336,7 @@ func parse(messages []Message) error {
 			}
 		}
 		if counter >= 2 {
-			return errors.New(fmt.Sprintf("you have duplicating 'Code=%v'", m.Code))
+			return errors.New(fmt.Sprintf("you have duplicate 'Code=%v'", m.Code))
 		}
 		// in case a message doesn't have any langs
 		if len(m.Templates) == 0 {
@@ -357,7 +357,7 @@ func parse(messages []Message) error {
 		}
 	}
 
-	// parse the number/type variables and compare it with parameters in message templates
+	// parse the number/type variables and compare it with placeholders in message templates
 
 	// parsing
 	for _, m := range messages {
@@ -374,33 +374,33 @@ func parse(messages []Message) error {
 				return errors.New(fmt.Sprintf("in 'Code=%v' you put '%v=%v', only these types are allowed: %v", m.Code, name, _type, variable_types))
 			}
 		}
-		// check variables/parameters count
+		// check variables/placeholders count
 		for lang, template := range m.Templates {
-			params := unique(getTemplateParamaters(template))
+			placeholders := unique(getPlaceholders(template))
 			// in case the variable doesn't exist in template
 			for variable := range m.Variables {
 				var counter = 0
-				for _, param := range params {
-					if variable == param {
+				for _, placeh := range placeholders {
+					if variable == placeh {
 						counter++
 						break
 					}
 				}
 				if counter == 0 {
-					return errors.New(fmt.Sprintf("in 'Code=%v' you miss to add the variable '%v' to template '%v'", m.Code, variable, lang))
+					return errors.New(fmt.Sprintf("in 'Code=%v' you have an unused variable '%v' in '%v' template", m.Code, variable, lang))
 				}
 			}
-			// in case the parameter doesn't exist in variables
-			for _, param := range params {
+			// in case the placeholder doesn't exist in variables
+			for _, placeh := range placeholders {
 				var counter = 0
 				for variable := range m.Variables {
-					if param == variable {
+					if placeh == variable {
 						counter++
 						break
 					}
 				}
 				if counter == 0 {
-					return errors.New(fmt.Sprintf("in 'Code=%v' you miss the to add parameter '{%v}' to variables", m.Code, param))
+					return errors.New(fmt.Sprintf("in 'Code=%v' you miss the to add the placeholder '{%v}' to variables list", m.Code, placeh))
 				}
 			}
 		}

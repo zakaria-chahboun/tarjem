@@ -58,18 +58,18 @@ const (
       m.Status = Status{{$obj.Status | title_case | trim}}
      {{end -}}
     {{if eq (len $obj.Variables) 0 -}}
-      switch string(currectLang) {
+      switch currectLang {
         {{range $lang, $template := $obj.Templates -}}
-          case "{{$lang}}":  
+          case Lang{{$lang | title_case}}:  
             m.Message = fmt.Sprintf("{{$template}}")
         {{end -}}
       }
     {{else -}}
-      switch string(currectLang) {
+      switch currectLang {
         {{range $lang, $template := $obj.Templates -}}
-        {{$new_template := replace_params $template $obj.Variables -}}
-        {{$params := correct_params $template $obj.Variables -}}
-          case "{{$lang}}":  
+        {{$new_template := replace_placeholders $template $obj.Variables -}}
+        {{$params := correct_placeholders $template $obj.Variables -}}
+          case Lang{{$lang | title_case}}:  
           m.Message = fmt.Sprintf("{{$new_template}}", {{join $params ","}})
         {{end -}}
       }
