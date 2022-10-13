@@ -1,14 +1,17 @@
 <img src="https://raw.githubusercontent.com/zakaria-chahboun/ZakiQtProjects/master/IMAGE1.png">
 
-genmessage is a message generator to easy translate your Go application.
+Genmessage is a message generator to easy translate your Go application.
 
-you only have to fill the `messages.toml` file.
+- You only have to fill the `messages.toml` file.
+- You can use variables as placeholers in your translation template.
+- Fast! We don't use `text/template` pacakge in the exported file, We just use `fmt.Sprintf`.
+- Clear functions parameters, No more ambiguity with maps!
 
-#### Installation
+## Installation
 ```bash
 go install github.com/zakaria-chahboun/genmessage@latest
 ```
-#### Usage
+## Usage
 You have to create a `messages.toml` file, example:
 
 ````toml
@@ -43,7 +46,7 @@ or just create it by `-init` tag
 genmessage -init
 ```
 
-#### Generate go file
+## Generate go file
 ```bash
 # you will export "messages.go" by default
 genmessage 
@@ -102,10 +105,10 @@ func CreateErrUserAccessDenied() (m *Message) {
 	m = &Message{}
 	m.Code = ErrUserAccessDenied
 	m.Status = StatusDanger
-	switch string(currectLang) {
-	case "arabic":
+	switch currectLang {
+	case LangArabic:
 		m.Message = fmt.Sprintf("إسم المستخدم أو كلمة المرور غير صحيحة! حاول من جديد.")
-	case "english":
+	case LangEnglish:
 		m.Message = fmt.Sprintf("Incorrect Username or Password! Try again.")
 	}
 	return
@@ -117,10 +120,10 @@ func CreateLastDateBillPay(
 	m = &Message{}
 	m.Code = LastDateBillPay
 	m.Status = StatusInfo
-	switch string(currectLang) {
-	case "arabic":
+	switch currectLang {
+	case LangArabic:
 		m.Message = fmt.Sprintf("آخر أجل لتستديد الفواتير هو %v", date.Format("2006-01-02 15:04:05"))
-	case "english":
+	case LangEnglish:
 		m.Message = fmt.Sprintf("The last date for paying bills is %v.", date.Format("2006-01-02 15:04:05"))
 	}
 	return
@@ -133,26 +136,30 @@ func CreateErrStockLimitExceeded(
 	m = &Message{}
 	m.Code = ErrStockLimitExceeded
 	m.Status = StatusWarning
-	switch string(currectLang) {
-	case "arabic":
+	switch currectLang {
+	case LangArabic:
 		m.Message = fmt.Sprintf("تم تجاوز حد المخزون! لم يتبقى سوى %d من مخزون %s.", quantity, name)
-	case "english":
+	case LangEnglish:
 		m.Message = fmt.Sprintf("Stock limit exceeded! Only %d left in stock %s.", quantity, name)
 	}
 	return
 }
 ```
 
-In error case, You will have a pretty cool message:
-![error screenshot](./screenshot/01.png)
+In error case, You will have a pretty cool error messages *(thanks to [cute](https://github.com/zakaria-chahboun/cute) package)* 👀:
 
-#### Fields
-* Required fields:
-  * `Code`, `[Messages.Templates]`
-* Optional fields:
-  * `Status`, `Variables`
+<img src="./screenshot/01.png" alter="error screenshot" width=700>
 
-In `[Messages.Templates]` there is no rule to create the name of languages. You can write any field name you want:
+
+## Fields
+* Required fields 👔:
+  - Code
+  - [Messages.Templates]
+* Optional fields 🤷:
+  - Status
+  - Variables
+
+In *[Messages.Templates]* there is no rule to create the name of languages fields. You can write any field name you want:
 ```toml
 [Messages.Templates]
 english = "...."
@@ -170,20 +177,22 @@ ar = "...."
 anglais = "...."
 arabe = "...."
 
-#or 😁
+#or 🦊
 
 [Messages.Templates]
-blabla1 = "...."
-blabla2 = "...."
+lang1 = "...."
+lang2 = "...."
+lang3 = "...."
 ```
 
-But the languages fields must be identical in all messages.
+But the languages fields must be identical in all messages ⚠.
 
-#### Variables and Types
-You can add `Variables` in your message, These types are allowed:
+## Variables and Types
+You can add Variables in your templates, These types are allowed:
+
 `int`, `float`, `string`, `date`, `time`, `datetime`
 
-Of course you can add these variables as paramaters in the message. You can call a variables many times in the message:
+Of course you can add these variables as placeholders in templates. You can call a variable many times in the template 👍🏻:
 
 ```toml
 [[Messages]]
@@ -193,8 +202,8 @@ Variables = {name="string"}
 en = "My name is {name}, Can you call me {name} 👀?"
 ```
 
-#### Use the message as an error
-You can use these message as errors. Just add another go file in the same location. e.g `errors.go`:
+## Use the message for error handling 🔥
+You can use the Message as an error. Just add another go file in the same location/package name. e.g `errors.go`:
 
 ```go
 package messages
@@ -204,7 +213,7 @@ func (this *Message) Error() string {
 }
 ```
 
-Now you can easily return it like error:
+Now you can easily return it like an error:
 
 ```go
 package main
@@ -214,14 +223,13 @@ import (
   "your-module/messages"
 )
 
-init () {
-  messages.SetCurrectLang(messages.LangEnglish)
-}
-
 func main() {
-  err := login("horaa","123456")
+  // choose a language
+  messages.SetCurrectLang(messages.LangEnglish)
+  
+  err := login("username","123456")
   if err != nil {
-    fmt.Println(err)
+    panic(err)
   }
 }
 
