@@ -1,47 +1,43 @@
 package messages
 
-import (
-  "fmt"
-  "time"
-)
-
-type Message struct {
-  Code string
-  Status string
-  Message string
-}
-
-/* new type */
-type lang string
-
-/* to store locally the currect languege used in app */
-var currectLang lang
-
-/* to set the currect languege used in app */
-func SetCurrectLang(languege lang) {
-  currectLang = languege
-}
-
-/* enum: Message.Code */
-const (
-{{range .Messages -}}
-  {{.Code | rename_code}} = "{{.Code}}"
-{{end -}}
-)
-
-{{if ne (len .Statuses) 0 -}}
-/* enum: Message.Status */
-  const (
-    {{range .Statuses -}}
-      Status{{. | title_case | trim}} = "{{.}}"
+{{if ne (len .Messages) 0 -}}
+  import (
+    "fmt"
+    {{if eq (is_contains_date .UniqueVariablesTypes) true -}}
+    "time"
     {{end -}}
   )
 {{end -}}
 
-/* enum: Message.Templates.{lang} */
+type Message struct {
+  Code string
+  Message string
+}
+
+/* language type */
+type Lang string
+
+/* to store locally the currect language used in app */
+var currectLang Lang
+
+/* to set the currect language used in app */
+func SetCurrectLang(language Lang) {
+  currectLang = language
+}
+
+{{if ne (len .Messages) 0 -}}
+  /* enum: Message.Code */
+  const (
+  {{range .Messages -}}
+    {{.Code | rename_code}} = "{{.Code}}"
+  {{end -}}
+  )
+{{end -}}
+
+/* enum: Templates.{lang} */
 const (
-{{range .Langs -}}
-  Lang{{. | title_case}} lang = "{{.}}"
+{{range .UniqueLangs -}}
+  Lang{{. | title_case}} Lang = "{{.}}"
 {{end -}}
 )
 
@@ -53,10 +49,6 @@ const (
   ) (m *Message) {
      m = &Message{}
      m.Code = {{$obj.Code | rename_code}}
-     {{$blank := is_blank $obj.Status -}}
-     {{if eq $blank false -}}
-      m.Status = Status{{$obj.Status | title_case | trim}}
-     {{end -}}
     {{if eq (len $obj.Variables) 0 -}}
       switch currectLang {
         {{range $lang, $template := $obj.Templates -}}
