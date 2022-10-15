@@ -1,11 +1,12 @@
 <img src="https://raw.githubusercontent.com/zakaria-chahboun/ZakiQtProjects/master/IMAGE1.png">
 
-Genmessage is a message generator to easy translate your Go application.
+Genmessage is a generator to easy translate your Go application ❤️.
 
 - You only have to fill the `messages.toml` file.
-- You can use variables as placeholers in your translation template.
-- Fast! We don't use `text/template` pacakge in the exported file, We just use `fmt.Sprintf`.
-- Clear functions parameters, No more ambiguity with maps!
+- You can use variables as placeholers in your translation templates.
+- Fast! We don't use `text/template` pacakge in the exported go files, We just use `fmt.Sprintf`.
+- Clear function arguments, No more ambiguity with maps!
+- Out-of-the-box error handling!
 
 ## Installation
 ```bash
@@ -17,45 +18,57 @@ You have to create a `messages.toml` file, example:
 ````toml
 # messages.toml file
 
+# normal 😇
 [[Messages]]
-Code = "err_user_access_denied"
-Status = "danger"
-[Messages.Templates]
-english = "Incorrect Username or Password! Try again."
-arabic = "إسم المستخدم أو كلمة المرور غير صحيحة! حاول من جديد."
-
-[[Messages]]
-Code = "last_date_bill_pay"
-Status = "info"
+Code = "last_date_pay_bill"
 Variables = {date="datetime"}
 [Messages.Templates]
 english = "The last date for paying bills is {date}."
 arabic = "آخر أجل لتستديد الفواتير هو {date}"
 
+# error handling 🥲
 [[Messages]]
-Code = "err_stock_limit_exceeded"
-Status = "warning"
+Code = "err_user_access_denied"
+Status = "danger" # optional
+[Messages.Templates]
+english = "Incorrect Username or Password! Try again."
+arabic = "إسم المستخدم أو كلمة المرور غير صحيحة! حاول من جديد."
+
+# error handling 🥲
+[[Messages]]
+Code = "error_stock_limit_exceeded"
+Status = "warning" # optional
 Variables = {name="string", quantity="int"}
 [Messages.Templates]
 english = "Stock limit exceeded! Only {quantity} left in stock {name}."
 arabic = "تم تجاوز حد المخزون! لم يتبقى سوى {quantity} من مخزون {name}."
 ````
 
-or just create it by `-init` tag
-```bash
-genmessage -init
-```
+or just create it by `genmessage init` tag
 
-## Generate go file
-```bash
-# you will export "messages.go" by default
-genmessage 
+<img src="./screenshot/01.png" alter="init" width=500>
 
-# or export a custom file name: e.g "name.go"
-genmessage -export name
-```
+As you see, we split messages in two parts:
+
+| normal message | error handling messages |
+|----------------|-------------------------|
+| Code = any name you want! | Code name starts with `err` or `error`.  |
+
+## Generate go files
+run `genmessage` to export final go files.
+
+<img src="./screenshot/02.png" alter="generate" width=500>
+
+
+In error case, You will have a pretty cool error messages *(thanks to [cute](https://github.com/zakaria-chahboun/cute) package)* 😍:
+
+<img src="./screenshot/03.png" alter="error screenshot">
+
+You will have `gen.messages.go` which contains all *normal* messages. And you will have also `gen.errors.go` which contains all *error handling* messages if exists!
+
 The result will be like that:
 
+### gen.messages.go
 ```go
 package messages
 
@@ -66,43 +79,82 @@ import (
 
 type Message struct {
 	Code    string
-	Status  string
 	Message string
 }
 
-/* new type */
-type lang string
+/* language type */
+type Lang string
 
-/* to store locally the currect languege used in app */
-var currectLang lang
+/* to store locally the currect language used in app */
+var currectLang Lang
 
-/* to set the currect languege used in app */
-func SetCurrectLang(languege lang) {
-	currectLang = languege
+/* to set the currect language used in app */
+func SetCurrectLang(language Lang) {
+	currectLang = language
 }
 
 /* enum: Message.Code */
 const (
-	ErrUserAccessDenied   = "err_user_access_denied"
-	LastDateBillPay       = "last_date_bill_pay"
-	ErrStockLimitExceeded = "err_stock_limit_exceeded"
+	LastDatePayBill = "last_date_pay_bill"
 )
 
-/* enum: Message.Status */
+/* enum: Templates.{lang} */
 const (
-	StatusDanger  = "danger"
-	StatusInfo    = "info"
-	StatusWarning = "warning"
+	LangArabic  Lang = "arabic"
+	LangEnglish Lang = "english"
 )
 
-/* enum: Message.Templates.{lang} */
-const (
-	LangEnglish lang = "english"
-	LangArabic  lang = "arabic"
-)
-
-func CreateErrUserAccessDenied() (m *Message) {
+func CreateLastDatePayBill(
+	date time.Time,
+) (m *Message) {
 	m = &Message{}
+	m.Code = LastDatePayBill
+	switch currectLang {
+	case LangArabic:
+		m.Message = fmt.Sprintf("آخر أجل لتستديد الفواتير هو %v", date.Format("2006-01-02 15:04:05"))
+	case LangEnglish:
+		m.Message = fmt.Sprintf("The last date for paying bills is %v.", date.Format("2006-01-02 15:04:05"))
+	}
+	return
+}
+```
+
+### gen.errors.go
+```go
+package messages
+
+import (
+	"fmt"
+)
+
+type MessageError struct {
+	Code    string
+	Status  Status // optional
+	Message string
+}
+
+/* MessageError method */
+func (this *MessageError) Error() string {
+	return fmt.Sprintf("%v: %v", this.Code, this.Message)
+}
+
+/* enum: MessageError.Code */
+const (
+	ErrUserAccessDenied     = "err_user_access_denied"
+	ErrorStockLimitExceeded = "error_stock_limit_exceeded"
+)
+
+/* status type */
+type Status string
+
+/* enum: MessageError.Status */
+const (
+	StatusDanger Status = "danger"
+	StatusWarning Status = "warning"
+)
+
+func CreateErrUserAccessDenied() (m *MessageError) {
+	m = &MessageError{}
 	m.Code = ErrUserAccessDenied
 	m.Status = StatusDanger
 	switch currectLang {
@@ -114,27 +166,12 @@ func CreateErrUserAccessDenied() (m *Message) {
 	return
 }
 
-func CreateLastDateBillPay(
-	date time.Time,
-) (m *Message) {
-	m = &Message{}
-	m.Code = LastDateBillPay
-	m.Status = StatusInfo
-	switch currectLang {
-	case LangArabic:
-		m.Message = fmt.Sprintf("آخر أجل لتستديد الفواتير هو %v", date.Format("2006-01-02 15:04:05"))
-	case LangEnglish:
-		m.Message = fmt.Sprintf("The last date for paying bills is %v.", date.Format("2006-01-02 15:04:05"))
-	}
-	return
-}
-
-func CreateErrStockLimitExceeded(
+func CreateErrorStockLimitExceeded(
 	name string,
 	quantity int,
-) (m *Message) {
-	m = &Message{}
-	m.Code = ErrStockLimitExceeded
+) (m *MessageError) {
+	m = &MessageError{}
+	m.Code = ErrorStockLimitExceeded
 	m.Status = StatusWarning
 	switch currectLang {
 	case LangArabic:
@@ -146,13 +183,8 @@ func CreateErrStockLimitExceeded(
 }
 ```
 
-In error case, You will have a pretty cool error messages *(thanks to [cute](https://github.com/zakaria-chahboun/cute) package)* 👀:
-
-<img src="./screenshot/01.png" alter="error screenshot" width=700>
-
-
 ## Fields
-* Required fields 👔:
+* Required fields ✅:
   - Code
   - [Messages.Templates]
 * Optional fields 🤷:
@@ -166,54 +198,42 @@ english = "...."
 arabic = "...."
 
 #or 
-
 [Messages.Templates]
 en = "...."
 ar = "...."
 
 #or
-
 [Messages.Templates]
 anglais = "...."
 arabe = "...."
 
-#or 🦊
-
+#or 👀
 [Messages.Templates]
 lang1 = "...."
 lang2 = "...."
 lang3 = "...."
 ```
 
-But the languages fields must be identical in all messages ⚠.
+⚠️ But the languages fields must be identical in all messages.
 
 ## Variables and Types
 You can add Variables in your templates, These types are allowed:
 
 `int`, `float`, `string`, `date`, `time`, `datetime`
 
-Of course you can add these variables as placeholders in templates. You can call a variable many times in the template 👍🏻:
+Of course you can add these variables as placeholders in templates. You can call a variable many times in template 👍🏻:
 
 ```toml
 [[Messages]]
 Code = "test"
 Variables = {name="string"}
 [Messages.Templates]
-en = "My name is {name}, Can you call me {name} 👀?"
+en = "My name is {name}, Can you call me {name} 🤠?"
+fr = "Je m'appelle {name}, pouvez-vous m'appeler {name} 🤠?"
 ```
 
 ## Use the message for error handling 🔥
-You can use the Message as an error. Just add another go file in the same location/package name. e.g `errors.go`:
-
-```go
-package messages
-
-func (this *Message) Error() string {
-	return this.Code + " : " + this.Message
-}
-```
-
-Now you can easily return it like an error:
+All error messages is located in `gen.errors.go` file, You can easily return it like an `error`:
 
 ```go
 package main
@@ -227,19 +247,34 @@ func main() {
   // choose a language
   messages.SetCurrectLang(messages.LangEnglish)
   
-  err := login("username","123456")
+  err := login("@captin_bassam","123456")
   if err != nil {
     panic(err)
   }
 }
 
 func login(name, pass string) error {
-  // a way of login
-  // ....
-  // error case
+  // a way of login 👀
+  if name == "@captain_majid" && pass == "gooooal"{
+	return nil
+  }
   return CreateErrUserAccessDenied()
 }
 ```
+
+## Clear
+run `genmessage clear` if you want to remove the generated go files:
+
+<img src="./screenshot/04.png" alter="clear" width=500>
+
+## Other argments
+You will find all other argments in help:
+```sh
+genmessage help
+```
+
+## Contribute 🌻
+Feel free to contribute or propose a feature or share your idea with us!
 
 -----
 twitter: [@zaki_chahboun](https://twitter.com/Zaki_Chahboun)
