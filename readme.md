@@ -44,7 +44,7 @@ english = "Stock limit exceeded! Only {quantity} left in stock {name}."
 arabic = "تم تجاوز حد المخزون! لم يتبقى سوى {quantity} من مخزون {name}."
 ````
 
-or just create it by `genmessage init` tag
+or just create it by `genmessage init`.
 
 <img src="./screenshot/01.png" alter="init" width=500>
 
