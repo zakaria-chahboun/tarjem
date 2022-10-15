@@ -1,6 +1,8 @@
 <img src="https://raw.githubusercontent.com/zakaria-chahboun/ZakiQtProjects/master/IMAGE1.png">
 
-Genmessage is a generator to easy translate your Go application ❤️.
+Tarjem is a generator to easy translate your Go application ❤️.
+
+*tarjem ترجم is an arabic word means 'translate'*
 
 - You only have to fill the `messages.toml` file.
 - You can use variables as placeholers in your translation templates.
@@ -10,7 +12,7 @@ Genmessage is a generator to easy translate your Go application ❤️.
 
 ## Installation
 ```bash
-go install github.com/zakaria-chahboun/genmessage@latest
+go install github.com/zakaria-chahboun/tarjem@latest
 ```
 ## Usage
 You have to create a `messages.toml` file, example:
@@ -44,7 +46,7 @@ english = "Stock limit exceeded! Only {quantity} left in stock {name}."
 arabic = "تم تجاوز حد المخزون! لم يتبقى سوى {quantity} من مخزون {name}."
 ````
 
-or just create it by `genmessage init`.
+or just create it by `tarjem init`.
 
 <img src="./screenshot/01.png" alter="init" width=500>
 
@@ -55,7 +57,7 @@ As you see, we split messages in two parts:
 | Code = any name you want! | Code name starts with `err` or `error`.  |
 
 ## Generate go files
-run `genmessage` to export final go files.
+run `tarjem` to export final go files.
 
 <img src="./screenshot/02.png" alter="generate" width=500>
 
@@ -263,14 +265,14 @@ func login(name, pass string) error {
 ```
 
 ## Clear
-run `genmessage clear` if you want to remove the generated go files:
+run `tarjem clear` if you want to remove the generated go files:
 
 <img src="./screenshot/04.png" alter="clear" width=500>
 
 ## Other argments
 You will find all other argments in help:
 ```sh
-genmessage help
+tarjem help
 ```
 
 ## Contribute 🌻

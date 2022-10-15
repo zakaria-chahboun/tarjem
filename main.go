@@ -56,7 +56,7 @@ func init() {
 	if len(os.Args) > 2 {
 		cute.SetTitleColor(cute.ColorBrightYellow)
 		cute.SetMessageColor(cute.ColorBrightYellow)
-		cute.Printlines("oops!", "too many arguments!", "try: genmessage help")
+		cute.Printlines("oops!", "too many arguments!", "try: tarjem help")
 		os.Exit(1)
 	}
 
@@ -70,9 +70,9 @@ func init() {
 				"oops!",
 				`"messages.toml" file not found!`,
 				"_______________________________",
-				"try: genmessage init",
-				"help: genmessage help",
-				"visit: https://github.com/zakaria-chahboun/genmessage",
+				"try: tarjem init",
+				"help: tarjem help",
+				"visit: https://github.com/zakaria-chahboun/tarjem",
 			)
 			os.Exit(1)
 		}
@@ -152,7 +152,7 @@ func init() {
 	// no arg match?
 	cute.SetTitleColor(cute.ColorBrightYellow)
 	cute.SetMessageColor(cute.ColorBrightYellow)
-	cute.Println("oops!", "try to get help: genmessage help")
+	cute.Println("oops!", "try to get help: tarjem help")
 	os.Exit(1)
 
 }
