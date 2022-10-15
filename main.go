@@ -4,11 +4,9 @@ import (
 	"bytes"
 	_ "embed"
 	"errors"
-	"flag"
 	"fmt"
 	"go/format"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"text/template"
@@ -32,74 +30,135 @@ const (
 	datetime_format = "2006-01-02 15:04:05" // YYYY-MM-DD hh:mm:ss
 )
 
-var variable_types = []string{"int", "float", "string", "date", "time", "datetime"}
-
-/* the location of messages.toml file */
-var toml_path = "./messages.toml"
-
-//go:embed messages.toml
-var toml_init_data []byte
-
-//go:embed template.tmpl
-var template_data []byte
-
-/* command line arguments */
 var (
-	Init       *bool
-	ExportName *string
+	// allowed variables
+	variable_types = []string{"int", "float", "string", "date", "time", "datetime"}
+	// location of messages.toml file
+	toml_file_path = "./messages.toml"
+
+	//go:embed messages.toml
+	toml_file_init_data []byte
+
+	//go:embed template-messages.tmpl
+	template_messages_data []byte
+
+	//go:embed template-error-handling.tmpl
+	template_error_handling_data []byte
+
+	// exported file names
+	exported_messages_path      = "gen.messages.go"
+	exported_error_hanling_path = "gen.errors.go"
 )
 
 /* handle the command line arguments */
 func init() {
-	ExportName = flag.String("export", "./messages.go", "Name of the exported file without specifying the (.go) extension.")
-	Init = flag.Bool("init", false, "Create the messages.toml file.")
-	help := flag.Bool("h", false, "help")
-	version := flag.Bool("v", false, "version.")
-
-	flag.Parse()
-
-	/* flag = -init */
-	if *Init {
-		err := createTomlInitFile()
-		cute.Check("Create Toml Init File", err)
-		cute.Println("Created", toml_path)
-		os.Exit(0)
-	}
-	/* flag = -h */
-	if *help {
-		flag.PrintDefaults()
-		os.Exit(0)
-	}
-	/*
-	 flag = -v
-	 Note: always check "git tag --sort=-version:refname | head -n 1"
-	*/
-	if *version {
-		cute.Println("Version", "v1.0.4")
-		os.Exit(0)
-	}
-	/* flag = -export */
-	ext := filepath.Ext(*ExportName)
-	if ext != ".go" {
-		*ExportName += ".go"
-	}
-
-	/* check if messages.toml exist */
-	_, err := os.Stat(toml_path)
-	if err != nil {
-		cute.SetMessageColor(cute.ColorBrightBlue)
-		cute.Printlines(
-			"oops!",
-			`"messages.toml" file not found!`,
-			"try: genmessage -init",
-			"help: genmessage -h",
-		)
+	// count args
+	if len(os.Args) > 2 {
+		cute.SetTitleColor(cute.ColorBrightYellow)
+		cute.SetMessageColor(cute.ColorBrightYellow)
+		cute.Printlines("oops!", "too many arguments!", "try: genmessage help")
 		os.Exit(1)
 	}
+
+	// no args: export
+	if len(os.Args) == 1 {
+		_, err := os.Stat(toml_file_path)
+		if err != nil {
+			cute.SetTitleColor(cute.ColorBrightYellow)
+			cute.SetMessageColor(cute.ColorBrightYellow)
+			cute.Printlines(
+				"oops!",
+				`"messages.toml" file not found!`,
+				"_______________________________",
+				"try: genmessage init",
+				"help: genmessage help",
+				"visit: https://github.com/zakaria-chahboun/genmessage",
+			)
+			os.Exit(1)
+		}
+		return // means go to main
+	}
+
+	/*
+		version
+		Note: always check "git tag --sort=-version:refname | head -n 1"
+	*/
+	version := "v1.0.5"
+
+	// prepare args
+	var arg = os.Args[1]
+	var argmap = map[string]string{}
+	argmap["init"] = "create 'messages.toml' file"
+	argmap["clear"] = "Remove generated files"
+	argmap["version"] = "Version: " + version
+	argmap["help"] = "Get help"
+
+	// init
+	if arg == "init" {
+		err := createTomlInitFile()
+		cute.Check("Init", err)
+
+		cute.SetTitleColor(cute.ColorBrightBlue)
+		cute.SetMessageColor(cute.ColorBrightBlue)
+		cute.Println("'messages.toml' was created")
+		os.Exit(0)
+	}
+	// clear
+	if arg == "clear" {
+		var queue []any
+		// check if file exists, then append it to queue
+		_, err := os.Stat(exported_messages_path)
+		if err == nil {
+			queue = append(queue, exported_messages_path)
+		}
+		_, err = os.Stat(exported_error_hanling_path)
+		if err == nil {
+			queue = append(queue, exported_error_hanling_path)
+		}
+		// no file exists?
+		if len(queue) == 0 {
+			cute.SetTitleColor(cute.ColorBrightYellow)
+			cute.SetMessageColor(cute.ColorBrightYellow)
+			cute.Println("No exported files to remove.")
+		} else {
+			// remove files in queue
+			for _, name := range queue {
+				os.Remove(name.(string))
+			}
+			cute.SetTitleColor(cute.ColorBrightBlue)
+			cute.SetMessageColor(cute.ColorBrightBlue)
+			cute.Printlines("Remove", queue...)
+		}
+		os.Exit(0)
+	}
+	// version
+	if arg == "version" {
+		cute.SetTitleColor(cute.ColorBrightBlue)
+		cute.SetMessageColor(cute.ColorBrightBlue)
+		cute.Println("Version", version)
+		os.Exit(0)
+	}
+	// help
+	if arg == "help" {
+		var list []any
+		for k, v := range argmap {
+			list = append(list, fmt.Sprintln(k, ":", v))
+		}
+		cute.SetTitleColor(cute.ColorBrightBlue)
+		cute.SetMessageColor(cute.ColorBrightBlue)
+		cute.Printlines("Help", list...)
+		os.Exit(0)
+	}
+	// no arg match?
+	cute.SetTitleColor(cute.ColorBrightYellow)
+	cute.SetMessageColor(cute.ColorBrightYellow)
+	cute.Println("oops!", "try to get help: genmessage help")
+	os.Exit(1)
+
 }
 
 func main() {
-	// functions to be used inside the template file
+	// functions to be used inside the template files
 	my_funcs := template.FuncMap{
 		"rename_code":          renameCode,
 		"rename_type":          renameType,
@@ -107,50 +166,97 @@ func main() {
 		"join":                 strings.Join,
 		"trim":                 strings.TrimSpace,
 		"is_blank":             isBlank,
+		"is_contains_date":     isContainsDate,
 		"correct_placeholders": correctPlaceholders,
 		"replace_placeholders": replacePlaceholdersWithSymbol,
 	}
 
-	// parse template file
-	t := template.Must(template.New("template.tmpl").Funcs(my_funcs).Parse(string(template_data)))
+	// parse template files
+	t_messages := template.Must(template.New("template-messages.tmpl").Funcs(my_funcs).Parse(string(template_messages_data)))
+	t_error_handling := template.Must(template.New("template-error-handling.tmpl").Funcs(my_funcs).Parse(string(template_error_handling_data)))
 
-	// load messages file
-	messages, err := LoadTranslationsFromTOML(toml_path)
+	// load messages.toml file
+	all_messages, err := LoadTranslationsFromTOML(toml_file_path)
 	cute.Check("load translations from messages.toml file", err)
 
 	// parse messages
-	err = parse(messages)
+	err = parse(all_messages)
 	cute.Check("parse messages.toml file", err)
 
-	// send data to template
-	var blob bytes.Buffer
-	err = t.Execute(&blob, struct {
-		Messages       []Message
-		Statuses       []string
-		Langs          []string
-		DateFormat     string
-		TimeFormat     string
-		DateTimeFormat string
-	}{
-		Messages:       messages,
-		Statuses:       getUniqueStatuses(messages), // unique
-		Langs:          getUniqueLangs(messages),    // unique
-		DateFormat:     date_format,
-		TimeFormat:     time_format,
-		DateTimeFormat: date_format,
-	})
-	cute.Check("handle template", err)
+	// split all messages into: "messages" and "error-handling"
+	var messages []Message
+	var error_handling []Message
+	for _, m := range all_messages {
+		if isCodeError(m.Code) {
+			error_handling = append(error_handling, m)
+		} else {
+			messages = append(messages, m)
+		}
+	}
 
+	// send data to messages template
+	var messages_blob bytes.Buffer
+	err = t_messages.Execute(&messages_blob, struct {
+		Messages             []Message
+		UniqueLangs          []string
+		UniqueVariablesTypes []string
+		DateFormat           string
+		TimeFormat           string
+		DateTimeFormat       string
+	}{
+		Messages:             messages,
+		UniqueLangs:          getUniqueLangs(all_messages), // all_messages not messages!
+		UniqueVariablesTypes: getUniqueVariablesTypes(messages),
+		DateFormat:           date_format,
+		TimeFormat:           time_format,
+		DateTimeFormat:       date_format,
+	})
+	cute.Check("parse (messages) template", err)
+
+	// send data to error handling template if exists
+	var error_handling_blob bytes.Buffer
+	if len(error_handling) > 0 {
+		err = t_error_handling.Execute(&error_handling_blob, struct {
+			Messages             []Message
+			UniqueStatuses       []string
+			UniqueVariablesTypes []string
+			DateFormat           string
+			TimeFormat           string
+			DateTimeFormat       string
+		}{
+			Messages:             error_handling,
+			UniqueStatuses:       getUniqueStatuses(error_handling),
+			UniqueVariablesTypes: getUniqueVariablesTypes(error_handling),
+			DateFormat:           date_format,
+			TimeFormat:           time_format,
+			DateTimeFormat:       date_format,
+		})
+		cute.Check("parse (error handling messages) template", err)
+	}
+
+	// final process for: messages
 	// go format
-	page, err := format.Source(blob.Bytes())
+	page, err := format.Source(messages_blob.Bytes())
 	cute.Check("go format", err)
 
 	// save template with values as a go file (.go)
-	err = saveToFile(*ExportName, page)
-	cute.Check(fmt.Sprintf("export %s file", *ExportName), err)
+	err = saveToFile(exported_messages_path, page)
+	cute.Check(fmt.Sprintf("export %s file", exported_messages_path), err)
+
+	// final process for: error handling
+	if error_handling_blob.String() != "" {
+		// go format
+		page, err := format.Source(error_handling_blob.Bytes())
+		cute.Check("go format", err)
+
+		// save template with values as a go file (.go)
+		err = saveToFile(exported_error_hanling_path, page)
+		cute.Check(fmt.Sprintf("export %s file", exported_error_hanling_path), err)
+	}
 
 	// done
-	cute.Println("done!")
+	cute.SetTitleColor(cute.ColorBrightGreen)
+	cute.Println("files generated successfully!")
 }
 
 /* rename code: (e.g) "user_is_out" to "UserIsOut" */
@@ -173,7 +279,7 @@ func renameType(text string) (s string) {
 }
 
 /* join map: (e.g) {a:1, b:2} to "a, b" */
-func joinkeys(m map[string]string) (s string) {
+func joinMapKeys(m map[string]string) (s string) {
 	for k := range m {
 		s += k + " ,"
 	}
@@ -200,6 +306,36 @@ func isBlank(s string) bool {
 	return false
 }
 
+/* check type is date or not */
+func isDate(t string) (ok bool) {
+	switch t {
+	case "date", "time", "datetime":
+		ok = true
+	default:
+		ok = false
+	}
+	return
+}
+
+/* check if variables type contains date */
+func isContainsDate(types []string) bool {
+	for _, v := range types {
+		if isDate(v) {
+			return true
+		}
+	}
+	return false
+}
+
+/* is error type or not (begin with "err or error" e.g "err_no_user") */
+func isCodeError(s string) bool {
+	s = strings.ToLower(s)
+	if strings.HasPrefix(s, "err") || strings.HasPrefix(s, "error") {
+		return true
+	}
+	return false
+}
+
 /* get unique statuses from messages */
 func getUniqueStatuses(ms []Message) (statuses []string) {
 	for _, v := range ms {
@@ -220,6 +356,17 @@ func getUniqueLangs(ms []Message) (langs []string) {
 		}
 	}
 	langs = unique(langs)
+	return
+}
+
+/* get unique variables types from messages.Variables */
+func getUniqueVariablesTypes(ms []Message) (types []string) {
+	for _, m := range ms {
+		for _, v := range m.Variables {
+			types = append(types, v)
+		}
+	}
+	types = unique(types)
 	return
 }
 
@@ -299,13 +446,13 @@ func saveToFile(path string, data []byte) (err error) {
 
 /* init the messages.toml file */
 func createTomlInitFile() (err error) {
-	f, err := os.Create(toml_path)
+	f, err := os.Create(toml_file_path)
 	if err != nil {
 		return
 	}
 	defer f.Close()
 
-	_, err = f.Write(toml_init_data)
+	_, err = f.Write(toml_file_init_data)
 	if err != nil {
 		return
 	}
@@ -326,6 +473,11 @@ func parse(messages []Message) error {
 		if m.Code == "" {
 			return errors.New(fmt.Sprintf("you forget to add the Code in messages[%v]", i))
 		}
+		// code has bad variabe name
+		ok, _ := regexp.MatchString("^[_a-zA-Z]\\w*$", m.Code)
+		if !ok {
+			return errors.New(fmt.Sprintf("bad code name! '%v' rules: no spaces, just letters or '_' in the beginning", m.Code))
+		}
 		// in case Code is duplicated
 		var counter = 0
 		for _, m2 := range messages {
@@ -342,7 +494,7 @@ func parse(messages []Message) error {
 		if len(m.Templates) == 0 {
 			return errors.New(fmt.Sprintf("no translations in 'Code=%v'", m.Code))
 		}
-		// calculate the count of langs in a message
+		// in case a lang is missing
 		counter = 0
 		for k := range m.Templates {
 			for _, l := range langs {
@@ -351,9 +503,15 @@ func parse(messages []Message) error {
 				}
 			}
 		}
-		// in case a lang is missing
 		if counter != len(langs) {
 			return errors.New(fmt.Sprintf("in 'Code=%v' you miss to implement some languages: %v", m.Code, langs))
+		}
+		// Status exist, But has bad variabe name
+		if m.Status != "" {
+			ok, _ = regexp.MatchString("^[_a-zA-Z]\\w*$", m.Status)
+			if !ok {
+				return errors.New(fmt.Sprintf("bad status name! '%v' rules: no spaces, just letters or '_' in the beginning", m.Status))
+			}
 		}
 	}
 
@@ -400,7 +558,7 @@ func parse(messages []Message) error {
 					}
 				}
 				if counter == 0 {
-					return errors.New(fmt.Sprintf("in 'Code=%v' you miss the to add the placeholder '{%v}' to variables list", m.Code, placeh))
+					return errors.New(fmt.Sprintf("in 'Code=%v' you miss to add the placeholder '{%v}' in variables list", m.Code, placeh))
 				}
 			}
 		}
