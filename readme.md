@@ -273,8 +273,8 @@ run `tarjem clear` if you want to remove the generated go files:
 
 <img src="./screenshot/04.png" alter="clear" width=500>
 
-## Other argments
-You will find all other argments in help:
+## Other arguments
+You will find all other arguments in help:
 ```sh
 tarjem help
 ```
