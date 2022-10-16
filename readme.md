@@ -1,6 +1,10 @@
 <img src="https://raw.githubusercontent.com/zakaria-chahboun/ZakiQtProjects/master/IMAGE1.png">
 
-Tarjem is a generator to easy translate your Go application ❤️.
+Tarjem is a generator to easy translate your Go application.
+
+Support me to be an independent open-source programmer 💟
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U7U3FQ2JA)
 
 *tarjem ترجم is an arabic word means 'translate'*
 
