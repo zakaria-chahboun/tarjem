@@ -83,7 +83,7 @@ func init() {
 		version
 		Note: always check "git tag --sort=-version:refname | head -n 1"
 	*/
-	version := "v1.0.5"
+	version := "v1.0.6"
 
 	// prepare args
 	var arg = os.Args[1]
