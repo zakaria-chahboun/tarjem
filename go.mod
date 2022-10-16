@@ -1,4 +1,4 @@
-module github.com/zakaria-chahboun/genmessage
+module github.com/zakaria-chahboun/tarjem
 
 go 1.18
 
