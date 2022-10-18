@@ -40,7 +40,7 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./bin/tarjem-${{ github.ref_name }}-linux-amd64
         asset_name: tarjem-${{ github.ref_name }}-linux-amd64
-        asset_content_type: application/octet-stream
+        asset_content_type: application/x-executable
 
     - name: Upload FreeBSD assests
       uses: actions/upload-release-asset@v1
@@ -50,7 +50,7 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./bin/tarjem-${{ github.ref_name }}-freebsd-amd64
         asset_name: tarjem-${{ github.ref_name }}-freebsd-amd64
-        asset_content_type: application/octet-stream
+        asset_content_type: application/x-executable
 
     - name: Upload Windows assests
       uses: actions/upload-release-asset@v1
@@ -60,4 +60,4 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./bin/tarjem-${{ github.ref_name }}-windows-amd64.exe
         asset_name: tarjem-${{ github.ref_name }}-windows-amd64.exe
-        asset_content_type: application/octet-stream
+        asset_content_type: application/x-ms-dos-executable
