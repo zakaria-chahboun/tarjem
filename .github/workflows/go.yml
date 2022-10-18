@@ -18,7 +18,7 @@ jobs:
         go-version: 1.18
 
     - name: Build
-      run: go build -v -ldflags "-X main.version=${{ github.ref_name }}" ./...
+      run: make -f Makefile.actions build VERSION="${{ github.ref_name }}"
     
     - name: Release
       uses: actions/create-release@v1
