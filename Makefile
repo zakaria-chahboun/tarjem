@@ -5,8 +5,8 @@ inject_version = -ldflags "-X main.version=$(get_version)"
 appname = $(name)-$(get_version)
 
 # commands
-run:
-	go run main.go
+install:
+	go mod tidy
 
 build:
 	go build -v $(inject_version) ./...
