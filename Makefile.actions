@@ -1,4 +1,4 @@
-# make -f makefile.actions build VERSION="v1.2.3"
+# make -f Makefile.actions build VERSION="v1.2.3"
 
 # variables
 inject_version = -ldflags "-X main.version=$(VERSION)"
