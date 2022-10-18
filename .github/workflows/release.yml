@@ -13,13 +13,19 @@ jobs:
       matrix:
         # build and publish in parallel: linux/386, linux/amd64, linux/arm64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
         goos: [linux, windows, darwin]
-        goarch: ["386", amd64, arm64]
+        goarch: [amd64, arm64]
         exclude:
-          - goarch: "386"
-            goos: darwin
           - goarch: arm64
             goos: windows
     steps:
+    - name: Get Release Info
+      run: |
+        echo "RELEASE_TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+        echo "REPOSITORY_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
+        echo "OS_NAME=${{ matrix.goos }}" >> $GITHUB_ENV
+    - name: OS darwin
+      if: matrix.goos == 'darwin'
+      run: echo "OS_NAME=macOS" >> $GITHUB_ENV
     - uses: actions/checkout@v3
     - uses: wangyoucao577/go-release-action@v1.32
       with:
@@ -27,6 +33,6 @@ jobs:
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
         project_path: "./cmd/bin"
-        binary_name: "tarjem"
+        asset_name: "${{ env.REPOSITORY_NAME }}-${{ env.RELEASE_TAG }}-${{ env.OS_NAME }}-${{ matrix.goarch }}"
         ldflags: "-X main.version=${{env.GITHUB_REF_NAME}}"
         extra_files: LICENSE README.md
