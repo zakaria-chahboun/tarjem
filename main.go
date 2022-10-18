@@ -48,6 +48,15 @@ var (
 	// exported file names
 	exported_messages_path      = "gen.messages.go"
 	exported_error_hanling_path = "gen.errors.go"
+
+	/*
+		Note:
+		check:
+			git tag --sort=-version:refname | head -n 1
+		or add it with:
+			go build -ldflags "-X main.version=`git tag --sort=-version:refname | head -n 1`
+	*/
+	version = "v1.0.6"
 )
 
 /* handle the command line arguments */
@@ -78,12 +87,6 @@ func init() {
 		}
 		return // means go to main
 	}
-
-	/*
-		version
-		Note: always check "git tag --sort=-version:refname | head -n 1"
-	*/
-	version := "v1.0.6"
 
 	// prepare args
 	var arg = os.Args[1]
