@@ -21,11 +21,11 @@ jobs:
       run: go build -v -ldflags "-X main.version=${{ github.ref_name }}" ./...
     
     - name: Release
-    uses: actions/create-release@v1
-    with:
-      draft: false
-      prerelease: false
-      release_name: tarjem ${{ github.ref_name }}
-      body_path: CHANGELOG.md
-    env:
-      GITHUB_TOKEN: ${{ github.token }}
+      uses: actions/create-release@v1
+      with:
+        draft: false
+        prerelease: false
+        release_name: tarjem ${{ github.ref_name }}
+        body_path: CHANGELOG.md
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
