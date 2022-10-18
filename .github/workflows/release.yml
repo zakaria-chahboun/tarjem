@@ -1,36 +1,63 @@
-# .github/workflows/release.yaml
+name: Go
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - '*'
 
 jobs:
-  releases-matrix:
-    name: Release Go Binary
+
+  build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # build and publish in parallel: linux/386, linux/amd64, linux/arm64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
-        goos: [linux, windows, darwin]
-        goarch: [amd64, arm64]
-        exclude:
-          - goarch: arm64
-            goos: windows
     steps:
-    - name: Get Release Info
-      run: |
-        echo "RELEASE_TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
-        echo "REPOSITORY_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
-        echo "OS_NAME=${{ matrix.goos }}" >> $GITHUB_ENV
-    - name: OS darwin
-      if: matrix.goos == 'darwin'
-      run: echo "OS_NAME=macOS" >> $GITHUB_ENV
     - uses: actions/checkout@v3
-    - uses: wangyoucao577/go-release-action@v1.32
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        goos: ${{ matrix.goos }}
-        goarch: ${{ matrix.goarch }}
-        asset_name: "${{ env.REPOSITORY_NAME }}-${{ env.RELEASE_TAG }}-${{ env.OS_NAME }}-${{ matrix.goarch }}"
-        ldflags: "-X main.version=${{env.GITHUB_REF_NAME}}"
-        extra_files: LICENSE README.md
+        go-version: 1.18
+
+    - name: Build
+      run: make -f Makefile.actions build VERSION="${{ github.ref_name }}"
+    
+    - name: Release
+      uses: actions/create-release@v1
+      id: create_release
+      with:
+        draft: false
+        prerelease: false
+        release_name: tarjem ${{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}
+        body_path: CHANGELOG.md
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Upload Linux assests
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./bin/tarjem-${{ github.ref_name }}-linux-amd64
+        asset_name: tarjem-${{ github.ref_name }}-linux-amd64
+        asset_content_type: application/x-executable
+
+    - name: Upload FreeBSD assests
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./bin/tarjem-${{ github.ref_name }}-freebsd-amd64
+        asset_name: tarjem-${{ github.ref_name }}-freebsd-amd64
+        asset_content_type: application/x-executable
+
+    - name: Upload Windows assests
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./bin/tarjem-${{ github.ref_name }}-windows-amd64.exe
+        asset_name: tarjem-${{ github.ref_name }}-windows-amd64.exe
+        asset_content_type: application/x-ms-dos-executable
