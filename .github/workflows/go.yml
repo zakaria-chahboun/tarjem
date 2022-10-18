@@ -22,6 +22,7 @@ jobs:
     
     - name: Release
       uses: actions/create-release@v1
+      id: create_release
       with:
         draft: false
         prerelease: false
