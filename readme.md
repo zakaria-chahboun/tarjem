@@ -260,7 +260,7 @@ run `tarjem clear` if you want to remove the generated go files:
 
 <img src="./screenshot/04.png" alter="clear" width=500>
 
-## Usage
+## Example
 Now enjoy the simplicity! Also all error messages is located in `gen.errors.go` file, You can easily return it like an `error`:
 
 ```go
