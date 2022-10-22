@@ -46,8 +46,9 @@ var (
 	template_error_handling_data []byte
 
 	// exported file names
-	exported_messages_path      = "gen.messages.go"
-	exported_error_hanling_path = "gen.errors.go"
+	package_name                 = "tarjem" // default in the exported files
+	exported_messages_path       = "gen.messages.go"
+	exported_error_handling_path = "gen.errors.go"
 
 	/*
 		Note:
@@ -56,35 +57,39 @@ var (
 		or add it with:
 			go build -ldflags "-X main.version=`git tag --sort=-version:refname | head -n 1`
 	*/
-	version = "v1.0.6"
+	version = "v1.1.0"
 )
 
 /* handle the command line arguments */
 func init() {
 	// count args
-	if len(os.Args) > 2 {
-		cute.SetTitleColor(cute.ColorBrightYellow)
-		cute.SetMessageColor(cute.ColorBrightYellow)
-		cute.Printlines("oops!", "too many arguments!", "try: tarjem help")
+	if len(os.Args) > 3 {
+		cute.SetTitleColor(cute.BrightYellow)
+		cute.SetMessageColor(cute.BrightYellow)
+		cute.Printlns("OOPS 😢!", "too many arguments!", "try: tarjem help")
 		os.Exit(1)
 	}
 
-	// no args: export
+	alert := func() {
+		cute.SetTitleColor(cute.BrightYellow)
+		cute.SetMessageColor(cute.BrightYellow)
+		list := cute.NewList(cute.BrightYellow, "OOPS 😢!")
+		list.Add(cute.BrightYellow, `"messages.toml" file not found!`)
+		list.Add(cute.BrightBlue, "try: tarjem init")
+		list.Add(cute.BrightBlue, "help: tarjem help")
+		list.Add(cute.BrightBlue, "visit: https://github.com/zakaria-chahboun/tarjem")
+		list.Print()
+	}
+
+	// no args => export
 	if len(os.Args) == 1 {
+		// is messages.toml file exist?
 		_, err := os.Stat(toml_file_path)
 		if err != nil {
-			cute.SetTitleColor(cute.ColorBrightYellow)
-			cute.SetMessageColor(cute.ColorBrightYellow)
-			cute.Printlines(
-				"oops!",
-				`"messages.toml" file not found!`,
-				"_______________________________",
-				"try: tarjem init",
-				"help: tarjem help",
-				"visit: https://github.com/zakaria-chahboun/tarjem",
-			)
+			alert()
 			os.Exit(1)
 		}
+		// done!
 		return // means go to main
 	}
 
@@ -93,16 +98,42 @@ func init() {
 	var argmap = map[string]string{}
 	argmap["init"] = "create 'messages.toml' file"
 	argmap["clear"] = "Remove generated files"
+	argmap["-package"] = "Package name of the generated files. default 'tarjem'"
 	argmap["version"] = "Version: " + version
 	argmap["help"] = "Get help"
 
+	// -package
+	if arg == "-package" {
+		// e.g: tarjem -package [name]
+		// no name?
+		if len(os.Args) < 3 {
+			cute.Println("OOPS 😢!", "You have to specify a package name.")
+			os.Exit(1)
+		}
+		// validate package name
+		var name = os.Args[2]
+		ok, _ := regexp.MatchString("^[_a-zA-Z]\\w*$", name)
+		if !ok {
+			cute.Println("Bad package name!", "Rules: just letters or '_' in the beginning.")
+			os.Exit(1)
+		}
+		// is messages.toml file exist?
+		_, err := os.Stat(toml_file_path)
+		if err != nil {
+			alert()
+			os.Exit(1)
+		}
+		// done!
+		package_name = name
+		return // means go to main
+	}
 	// init
 	if arg == "init" {
 		err := createTomlInitFile()
 		cute.Check("Init", err)
 
-		cute.SetTitleColor(cute.ColorBrightBlue)
-		cute.SetMessageColor(cute.ColorBrightBlue)
+		cute.SetTitleColor(cute.BrightBlue)
+		cute.SetMessageColor(cute.BrightBlue)
 		cute.Println("'messages.toml' was created")
 		os.Exit(0)
 	}
@@ -114,30 +145,30 @@ func init() {
 		if err == nil {
 			queue = append(queue, exported_messages_path)
 		}
-		_, err = os.Stat(exported_error_hanling_path)
+		_, err = os.Stat(exported_error_handling_path)
 		if err == nil {
-			queue = append(queue, exported_error_hanling_path)
+			queue = append(queue, exported_error_handling_path)
 		}
 		// no file exists?
 		if len(queue) == 0 {
-			cute.SetTitleColor(cute.ColorBrightYellow)
-			cute.SetMessageColor(cute.ColorBrightYellow)
-			cute.Println("No exported files to remove.")
+			cute.SetTitleColor(cute.BrightYellow)
+			cute.SetMessageColor(cute.BrightYellow)
+			cute.Println("No exported files to remove 🫢.")
 		} else {
 			// remove files in queue
 			for _, name := range queue {
 				os.Remove(name.(string))
 			}
-			cute.SetTitleColor(cute.ColorBrightBlue)
-			cute.SetMessageColor(cute.ColorBrightBlue)
-			cute.Printlines("Remove", queue...)
+			cute.SetTitleColor(cute.BrightBlue)
+			cute.SetMessageColor(cute.BrightBlue)
+			cute.Printlns("Remove", queue...)
 		}
 		os.Exit(0)
 	}
 	// version
 	if arg == "version" {
-		cute.SetTitleColor(cute.ColorBrightBlue)
-		cute.SetMessageColor(cute.ColorBrightBlue)
+		cute.SetTitleColor(cute.BrightBlue)
+		cute.SetMessageColor(cute.BrightBlue)
 		cute.Println("Version", version)
 		os.Exit(0)
 	}
@@ -147,15 +178,15 @@ func init() {
 		for k, v := range argmap {
 			list = append(list, fmt.Sprintln(k, ":", v))
 		}
-		cute.SetTitleColor(cute.ColorBrightBlue)
-		cute.SetMessageColor(cute.ColorBrightBlue)
-		cute.Printlines("Help", list...)
+		cute.SetTitleColor(cute.BrightBlue)
+		cute.SetMessageColor(cute.BrightBlue)
+		cute.Printlns("Help", list...)
 		os.Exit(0)
 	}
 	// no arg match?
-	cute.SetTitleColor(cute.ColorBrightYellow)
-	cute.SetMessageColor(cute.ColorBrightYellow)
-	cute.Println("oops!", "try to get help: tarjem help")
+	cute.SetTitleColor(cute.BrightYellow)
+	cute.SetMessageColor(cute.BrightYellow)
+	cute.Println("OOPS 😢!", "try to get help: tarjem help")
 	os.Exit(1)
 
 }
@@ -200,6 +231,7 @@ func main() {
 	// send data to messages template
 	var messages_blob bytes.Buffer
 	err = t_messages.Execute(&messages_blob, struct {
+		PackageName          string
 		Messages             []Message
 		UniqueLangs          []string
 		UniqueVariablesTypes []string
@@ -207,6 +239,7 @@ func main() {
 		TimeFormat           string
 		DateTimeFormat       string
 	}{
+		PackageName:          package_name,
 		Messages:             messages,
 		UniqueLangs:          getUniqueLangs(all_messages), // all_messages not messages!
 		UniqueVariablesTypes: getUniqueVariablesTypes(messages),
@@ -220,6 +253,7 @@ func main() {
 	var error_handling_blob bytes.Buffer
 	if len(error_handling) > 0 {
 		err = t_error_handling.Execute(&error_handling_blob, struct {
+			PackageName          string
 			Messages             []Message
 			UniqueStatuses       []string
 			UniqueVariablesTypes []string
@@ -227,6 +261,7 @@ func main() {
 			TimeFormat           string
 			DateTimeFormat       string
 		}{
+			PackageName:          package_name,
 			Messages:             error_handling,
 			UniqueStatuses:       getUniqueStatuses(error_handling),
 			UniqueVariablesTypes: getUniqueVariablesTypes(error_handling),
@@ -253,12 +288,12 @@ func main() {
 		cute.Check("go format", err)
 
 		// save template with values as a go file (.go)
-		err = saveToFile(exported_error_hanling_path, page)
-		cute.Check(fmt.Sprintf("export %s file", exported_error_hanling_path), err)
+		err = saveToFile(exported_error_handling_path, page)
+		cute.Check(fmt.Sprintf("export %s file", exported_error_handling_path), err)
 	}
 
 	// done
-	cute.SetTitleColor(cute.ColorBrightGreen)
+	cute.SetTitleColor(cute.BrightGreen)
 	cute.Println("files generated successfully!")
 }
 
@@ -476,7 +511,7 @@ func parse(messages []Message) error {
 		if m.Code == "" {
 			return errors.New(fmt.Sprintf("you forget to add the Code in messages[%v]", i))
 		}
-		// code has bad variabe name
+		// code has bad variable name
 		ok, _ := regexp.MatchString("^[_a-zA-Z]\\w*$", m.Code)
 		if !ok {
 			return errors.New(fmt.Sprintf("bad code name! '%v' rules: no spaces, just letters or '_' in the beginning", m.Code))
@@ -509,7 +544,7 @@ func parse(messages []Message) error {
 		if counter != len(langs) {
 			return errors.New(fmt.Sprintf("in 'Code=%v' you miss to implement some languages: %v", m.Code, langs))
 		}
-		// Status exist, But has bad variabe name
+		// Status exist, But has bad variable name
 		if m.Status != "" {
 			ok, _ = regexp.MatchString("^[_a-zA-Z]\\w*$", m.Status)
 			if !ok {
