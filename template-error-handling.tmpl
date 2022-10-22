@@ -1,4 +1,4 @@
-package messages
+package {{.PackageName}}
 
 import (
   "fmt"
@@ -38,7 +38,7 @@ type Status string
 {{end -}}
 
 {{range $obj := .Messages}}
-  func Create{{$obj.Code | rename_code}}(
+  func Report{{$obj.Code | rename_code}}(
   {{range $k, $v := $obj.Variables -}}
     {{$k}} {{$v | rename_type}},
   {{end -}}
@@ -50,14 +50,14 @@ type Status string
       m.Status = Status{{$obj.Status | title_case | trim}}
      {{end -}}
     {{if eq (len $obj.Variables) 0 -}}
-      switch currectLang {
+      switch currentLang {
         {{range $lang, $template := $obj.Templates -}}
           case Lang{{$lang | title_case}}:  
             m.Message = fmt.Sprintf("{{$template}}")
         {{end -}}
       }
     {{else -}}
-      switch currectLang {
+      switch currentLang {
         {{range $lang, $template := $obj.Templates -}}
         {{$new_template := replace_placeholders $template $obj.Variables -}}
         {{$params := correct_placeholders $template $obj.Variables -}}

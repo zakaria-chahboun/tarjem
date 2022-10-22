@@ -1,4 +1,4 @@
-package messages
+package {{.PackageName}}
 
 {{if ne (len .Messages) 0 -}}
   import (
@@ -14,15 +14,20 @@ type Message struct {
   Message string
 }
 
+/* Message method */
+func (this *Message) String() string {
+  return fmt.Sprintf("%v: %v", this.Code, this.Message)
+}
+
 /* language type */
 type Lang string
 
-/* to store locally the currect language used in app */
-var currectLang Lang
+/* to store locally the current language used in app */
+var currentLang Lang
 
-/* to set the currect language used in app */
-func SetCurrectLang(language Lang) {
-  currectLang = language
+/* to set the current language used in app */
+func SetCurrentLang(language Lang) {
+  currentLang = language
 }
 
 {{if ne (len .Messages) 0 -}}
@@ -50,14 +55,14 @@ const (
      m = &Message{}
      m.Code = {{$obj.Code | rename_code}}
     {{if eq (len $obj.Variables) 0 -}}
-      switch currectLang {
+      switch currentLang {
         {{range $lang, $template := $obj.Templates -}}
           case Lang{{$lang | title_case}}:  
             m.Message = fmt.Sprintf("{{$template}}")
         {{end -}}
       }
     {{else -}}
-      switch currectLang {
+      switch currentLang {
         {{range $lang, $template := $obj.Templates -}}
         {{$new_template := replace_placeholders $template $obj.Variables -}}
         {{$params := correct_placeholders $template $obj.Variables -}}
