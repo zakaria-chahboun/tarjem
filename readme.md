@@ -70,11 +70,11 @@ In error case, You will have a pretty cool error messages *(thanks to [cute](htt
 
 <img src="./screenshot/03.png" alter="error screenshot">
 
-In your current folder you will have `gen.messages.go` which contains all *normal* messages. And you will have also `gen.errors.go` which contains all *error handling* messages if exists!
+In your current folder you will have "gen.messages.go" which contains all *normal* messages. And you will have also "gen.errors.go" which contains all *error handling* messages if exists!
 
 | normal message example | error handling message example|
 |----------------|-------------------------|
-| `func CreateLastDatePayBill(date time.Time) (m *Message)` | `func ReportErrUserAccessDenied() (m *MessageError)` |
+| func CreateLastDatePayBill(date time.Time) (m *Message) | func ReportErrUserAccessDenied() (m *MessageError) |
 
 The result will be like that:
 
@@ -198,14 +198,6 @@ func ReportErrorStockLimitExceeded(
 }
 ```
 
-## Change package name
-As you can see. The generated files has `package tarjem`! You can change the package name by:
-
-```go
-# e.g translations
-tarjem -package translations
-```
-
 ## Fields
 * Required fields ✅:
   - Code
@@ -255,6 +247,19 @@ en = "My name is {name}, Can you call me {name} 🤠?"
 fr = "Je m'appelle {name}, pouvez-vous m'appeler {name} 🤠?"
 ```
 
+## Change package name
+As you can see. The generated files has `package tarjem`! You can change it by:
+
+```sh
+# e.g translations
+tarjem -package translations
+```
+
+## Clear
+run `tarjem clear` if you want to remove the generated go files:
+
+<img src="./screenshot/04.png" alter="clear" width=500>
+
 ## Usage
 Now enjoy the simplicity! Also all error messages is located in `gen.errors.go` file, You can easily return it like an `error`:
 
@@ -289,12 +294,7 @@ func main() {
 
 output:
 
-<img src="./screenshot/example.png" alter="example">
-
-## Clear
-run `tarjem clear` if you want to remove the generated go files:
-
-<img src="./screenshot/04.png" alter="clear" width=500>
+<img src="./screenshot/example.png" alter="example" width=500>
 
 ## Other arguments
 You will find all other arguments in help:
