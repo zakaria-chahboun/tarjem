@@ -9,8 +9,8 @@ Support me to be an independent open-source programmer 💟
 *tarjem ترجم is an arabic word means 'translate'*
 
 - You only have to fill the `messages.toml` file.
-- You can use variables as placeholers in your translation templates.
-- Fast! We don't use `text/template` pacakge in the exported go files, We just use `fmt.Sprintf`.
+- You can use variables as placeholders in your translation templates.
+- Fast! We don't use `text/template` package in the exported go files, We just use `fmt.Sprintf`.
 - Clear function arguments, No more ambiguity with maps!
 - Out-of-the-box error handling!
 
@@ -56,7 +56,7 @@ or just create it by `tarjem init`.
 
 As you see, we split messages in two parts:
 
-| normal message | error handling messages |
+| normal messages | error handling messages |
 |----------------|-------------------------|
 | Code = any name you want! | Code name starts with `err` or `error`.  |
 
@@ -70,13 +70,17 @@ In error case, You will have a pretty cool error messages *(thanks to [cute](htt
 
 <img src="./screenshot/03.png" alter="error screenshot">
 
-You will have `gen.messages.go` which contains all *normal* messages. And you will have also `gen.errors.go` which contains all *error handling* messages if exists!
+In your current folder you will have `gen.messages.go` which contains all *normal* messages. And you will have also `gen.errors.go` which contains all *error handling* messages if exists!
+
+| normal message example | error handling message example|
+|----------------|-------------------------|
+| `func CreateLastDatePayBill(date time.Time) (m *Message)` | `func ReportErrUserAccessDenied() (m *MessageError)` |
 
 The result will be like that:
 
 ### gen.messages.go
 ```go
-package messages
+package tarjem
 
 import (
 	"fmt"
@@ -88,15 +92,20 @@ type Message struct {
 	Message string
 }
 
+/* Message method */
+func (this *Message) String() string {
+	return fmt.Sprintf("%v: %v", this.Code, this.Message)
+}
+
 /* language type */
 type Lang string
 
-/* to store locally the currect language used in app */
-var currectLang Lang
+/* to store locally the current language used in app */
+var currentLang Lang
 
-/* to set the currect language used in app */
-func SetCurrectLang(language Lang) {
-	currectLang = language
+/* to set the current language used in app */
+func SetCurrentLang(language Lang) {
+	currentLang = language
 }
 
 /* enum: Message.Code */
@@ -115,7 +124,7 @@ func CreateLastDatePayBill(
 ) (m *Message) {
 	m = &Message{}
 	m.Code = LastDatePayBill
-	switch currectLang {
+	switch currentLang {
 	case LangArabic:
 		m.Message = fmt.Sprintf("آخر أجل لتستديد الفواتير هو %v", date.Format("2006-01-02 15:04:05"))
 	case LangEnglish:
@@ -127,7 +136,7 @@ func CreateLastDatePayBill(
 
 ### gen.errors.go
 ```go
-package messages
+package tarjem
 
 import (
 	"fmt"
@@ -155,15 +164,15 @@ type Status string
 
 /* enum: MessageError.Status */
 const (
-	StatusDanger Status = "danger"
+	StatusDanger  Status = "danger"
 	StatusWarning Status = "warning"
 )
 
-func CreateErrUserAccessDenied() (m *MessageError) {
+func ReportErrUserAccessDenied() (m *MessageError) {
 	m = &MessageError{}
 	m.Code = ErrUserAccessDenied
 	m.Status = StatusDanger
-	switch currectLang {
+	switch currentLang {
 	case LangArabic:
 		m.Message = fmt.Sprintf("إسم المستخدم أو كلمة المرور غير صحيحة! حاول من جديد.")
 	case LangEnglish:
@@ -172,14 +181,14 @@ func CreateErrUserAccessDenied() (m *MessageError) {
 	return
 }
 
-func CreateErrorStockLimitExceeded(
+func ReportErrorStockLimitExceeded(
 	name string,
 	quantity int,
 ) (m *MessageError) {
 	m = &MessageError{}
 	m.Code = ErrorStockLimitExceeded
 	m.Status = StatusWarning
-	switch currectLang {
+	switch currentLang {
 	case LangArabic:
 		m.Message = fmt.Sprintf("تم تجاوز حد المخزون! لم يتبقى سوى %d من مخزون %s.", quantity, name)
 	case LangEnglish:
@@ -187,6 +196,14 @@ func CreateErrorStockLimitExceeded(
 	}
 	return
 }
+```
+
+## Change package name
+As you can see. The generated files has `package tarjem`! You can change the package name by:
+
+```go
+# e.g translations
+tarjem -package translations
 ```
 
 ## Fields
@@ -238,35 +255,41 @@ en = "My name is {name}, Can you call me {name} 🤠?"
 fr = "Je m'appelle {name}, pouvez-vous m'appeler {name} 🤠?"
 ```
 
-## Use the message for error handling 🔥
-All error messages is located in `gen.errors.go` file, You can easily return it like an `error`:
+## Usage
+Now enjoy the simplicity! Also all error messages is located in `gen.errors.go` file, You can easily return it like an `error`:
 
 ```go
 package main
 
 import (
-  "fmt"
-  "your-module/messages"
+	"time"
+	"[YOUR-MODULE]/tarjem"
+
+	"github.com/zakaria-chahboun/cute"
 )
 
 func main() {
-  // choose a language
-  messages.SetCurrectLang(messages.LangEnglish)
-  
-  err := login("@captin_bassam","123456")
-  if err != nil {
-    panic(err)
-  }
-}
+	// choose a language 🇬🇧
+	tarjem.SetCurrentLang(tarjem.LangEnglish)
 
-func login(name, pass string) error {
-  // a way of login 👀
-  if name == "@captain_majid" && pass == "gooooal"{
-	return nil
-  }
-  return CreateErrUserAccessDenied()
+	// 🤏 
+	m1 := tarjem.CreateLastDatePayBill(time.Now())
+	// calling .String() method  
+	cute.Println("String() Method", m1)
+
+	// print the main message
+	m2 := tarjem.CreateLastDatePayBill(time.Now()).Message
+	cute.Println("Message Field", m2)
+
+	// error case 🐞
+	err := tarjem.ReportErrUserAccessDenied()
+	cute.Check("Report", err)
 }
 ```
+
+output:
+
+<img src="./screenshot/example.png" alter="example">
 
 ## Clear
 run `tarjem clear` if you want to remove the generated go files:
