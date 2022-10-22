@@ -5,13 +5,13 @@
 
 | normal message example | error handling message example|
 |----------------|-------------------------|
-| `func CreateLastDatePayBill(date time.Time) (m *Message)` | `func ReportErrUserAccessDenied() (m *MessageError)` |
+| func CreateLastDatePayBill(date time.Time) (m *Message) | func ReportErrUserAccessDenied() (m *MessageError) |
 
 - Change the default package name in generated files: from `package messages` to `package tarjem`
 
 ### You now can specify the package name:
 
-```go
+```sh
 # e.g translations
 tarjem -package translations
 ```

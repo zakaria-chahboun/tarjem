@@ -268,33 +268,33 @@ package main
 
 import (
 	"time"
+	"fmt"
 	"[YOUR-MODULE]/tarjem"
-
-	"github.com/zakaria-chahboun/cute"
 )
 
 func main() {
 	// choose a language 🇬🇧
 	tarjem.SetCurrentLang(tarjem.LangEnglish)
 
-	// 🤏 
-	m1 := tarjem.CreateLastDatePayBill(time.Now())
-	// calling .String() method  
-	cute.Println("String() Method", m1)
-
-	// print the main message
-	m2 := tarjem.CreateLastDatePayBill(time.Now()).Message
-	cute.Println("Message Field", m2)
+	// print message
+	m := tarjem.CreateLastDatePayBill(time.Now())
+	fmt.Println("Message: ", m.Message)
 
 	// error case 🐞
-	err := tarjem.ReportErrUserAccessDenied()
-	cute.Check("Report", err)
+	err := login("@captin_bassam","123456")
+  	if err != nil {
+    	panic(err)
+  	}
+}
+
+func login(name, pass string) error {
+  // a way of login 👀
+  if name == "@captain_majid" && pass == "gooooal"{
+	return nil
+  }
+  return tarjem.ReportErrUserAccessDenied()
 }
 ```
-
-output:
-
-<img src="./screenshot/example.png" alter="example" width=500>
 
 ## Other arguments
 You will find all other arguments in help:
