@@ -8,11 +8,14 @@ Support me to be an independent open-source programmer 💟
 
 *tarjem ترجم is an arabic word means 'translate'*
 
-- You only have to fill the `messages.toml` file.
-- You can use variables as placeholders in your translation templates.
-- Fast! We don't use `text/template` package in the exported go files, We just use `fmt.Sprintf`.
-- Clear function arguments, No more ambiguity with maps!
-- Out-of-the-box error handling!
+### Advantages:
+
+* **Simplicity**: Tarjem simplifies the translation process by using a structured TOML file (messages.toml) to define translation templates. This makes it easier to manage and update translations compared to embedding them directly in code.
+* **Code Generation**: By generating Go code (gen.messages.go and gen.errors.go), Tarjem eliminates the need for runtime text processing (like text/template). This results in faster performance and less overhead during execution.
+* **Type Safety**: The use of structured templates and predefined variables (like {date}, {name}, {quantity}) ensures type safety. This helps prevent runtime errors that may occur with less structured approaches.
+* **Clear Separation**: Messages are clearly separated into normal messages and error handling messages (Message and MessageError), each with their own specific handling and usage patterns.
+* **Out-of-the-Box Error Handling**: Tarjem provides built-in support for error handling messages, including status indicators (Status) and error-specific formatting. This makes it straightforward to handle and present errors consistently across an application.
+* **Support for Multiple Languages**: By allowing multiple translations for each message (english, arabic in the example), Tarjem facilitates multi-language support without cluttering the main application logic.
 
 ## Installation
 ```bash
