@@ -6,6 +6,8 @@ Tarjem is a powerful CLI tool for managing translations in your projects. It sim
 
 *tarjem ترجم is an arabic word means 'translate'*
 
+![tarjem_mascot](/screenshot/tarjem_mascot.png)
+
 
 ## Features
 
@@ -96,13 +98,13 @@ welcome:
     english: "Welcome!"
     arabic: "أهلاً وسهلاً!"
 
-item_status:
+order_status:
   variables:
-    name: string
-    count: int
+    order_id: string
+    delivery_time: datetime
   translations:
-    english: "{name} is available with {count} in stock."
-    arabic: "العنصر {name} متاح بكمية {count}."
+    english: "Your order {order_id} was placed on {delivery_time}."
+    arabic: "تم تقديم طلبك {order_id} في {delivery_time}."
 ```
 
 ### Generated Code Usage (Go Example)
@@ -110,24 +112,27 @@ item_status:
 After exporting, you can use the generated functions in your Go code:
 
 ```go
-import "yourproject/tarjem"
+import (
+	"fmt"
+	"time"
+	"yourproject/tarjem"
+)
 
 func main() {
 
-	// Set Arabic as langues
+	// Set Arabic as language
 	tarjem.SetCurrentLang(tarjem.LangArabic)
     
 	// Print the translations
-    fmt.Println(tarjem.Welcome()) // Output: أهلا وسهلا!
-	fmt.Println(tarjem.ItemStatus("تفاح", 5)) // Output: العنصر تفاح متاح بكمية 5.
+	fmt.Println(tarjem.Welcome()) // Output: أهلاً وسهلاً!
+	fmt.Println(tarjem.OrderStatus("12345", time.Now())) // Output: تم تقديم طلبك 12345 في 2024-08-25 14:45:00.
 
-	// Set English as langues
-    tarjem.SetCurrentLang(tarjem.LangEnglish)
+	// Set English as language
+	tarjem.SetCurrentLang(tarjem.LangEnglish)
 
-
-	// Print the translations
-    fmt.Println(tarjem.Welcome()) // Output: Welcome!
-    fmt.Println(tarjem.ItemStatus("Apple", 5)) // Output: Apple is available with 5 in stock.
+	// Print the translations 
+	fmt.Println(tarjem.Welcome()) // Output: Welcome!
+	fmt.Println(tarjem.OrderStatus("12345", time.Now())) // Output: Your order 12345 was placed on 2024-08-25 14:45:00.
 }
 ```
 
