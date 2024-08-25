@@ -1,17 +1,17 @@
 <img src="https://raw.githubusercontent.com/zakaria-chahboun/ZakiQtProjects/master/IMAGE1.png">
 
-Support me to be an independent open-source programmer 💟
+# Tarjem
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U7U3FQ2JA)
+Tarjem is a powerful CLI tool for managing translations in your projects. It simplifies the process of internationalization by generating type-safe code from YAML translation files.
 
 *tarjem ترجم is an arabic word means 'translate'*
+
 
 ## Features
 
 - Tarjem uses `fmt.Sprintf` directly for precise formatting. This approach skips _templates_, which makes it faster and more efficient.
 - Initialize translation files with a simple command
 - Export translations to various programming languages
-- Support for multiple natural languages
 - Type-safe translation functions
 - Date and time formatting support
 - Easy integration with existing projects
@@ -74,15 +74,9 @@ Optionally, specify a package name (for Go):
 tarjem export --lang go --package mypackage
 ```
 
-#### We provide good pacing messages when error happing, examples 
+Tarjem provides clear error messages for various issues during translation, example:
 
 ![missing placeholder](/screenshot/parse_1.png)
-
-![not user variables in translation](/screenshot/parse_2.png)
-
-![missing translations](/screenshot/parse_3.png)
-
-![unsupported type](/screenshot/parse_4.png)
 
 ### Clearing Generated Files
 
@@ -177,6 +171,10 @@ welcome:
 ## Contribute 🌻
 
 Feel free to contribute or propose a feature or share your idea with us!
+
+Support me to be an independent open-source programmer 💟
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U7U3FQ2JA)
 
 ## License
 
