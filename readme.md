@@ -1,309 +1,190 @@
 <img src="https://raw.githubusercontent.com/zakaria-chahboun/ZakiQtProjects/master/IMAGE1.png">
 
-Tarjem is a generator to easy translate your Go application.
-
 Support me to be an independent open-source programmer 💟
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U7U3FQ2JA)
 
-*tarjem ترجم is an arabic word means 'translate'*
+# Tarjem
 
-- You only have to fill the `messages.toml` file.
-- You can use variables as placeholders in your translation templates.
-- Fast! We don't use `text/template` package in the exported go files, We just use `fmt.Sprintf`.
-- Clear function arguments, No more ambiguity with maps!
-- Out-of-the-box error handling!
+Tarjem is a powerful CLI tool for managing translations in your projects. It simplifies the process of internationalization by generating type-safe code from YAML translation files.
+
+> *tarjem ترجم is an arabic word means 'translate'*
+
+## Features
+
+- Tarjem uses `fmt.Sprintf` directly for precise formatting. This approach skips _templates_, which makes it faster and more efficient.
+- Initialize translation files with a simple command
+- Export translations to various programming languages
+- Support for multiple natural languages
+- Type-safe translation functions
+- Date and time formatting support
+- Easy integration with existing projects
+
+## Current Language Support
+
+As of now, Tarjem supports code generation for:
+
+- Go
+
+## Upcoming Language Support
+
+We're actively working on expanding Tarjem's capabilities. In the near future, we plan to add support for:
+
+- [ ] JavaScript
+- [ ] Python
+- [ ] Dart
+- [ ] C
+- [ ] C++
+- [ ] Rust
+- [ ] Zig
+
+Stay tuned for updates!
 
 ## Installation
-```bash
-go install github.com/zakaria-chahboun/tarjem@latest
+
+To install Tarjem, use the following command:
+
+```console
+go install github.com/yourusername/tarjem@latest
 ```
+
 ## Usage
-You have to create a `messages.toml` file, example:
 
-````toml
-# messages.toml file
+### Initializing Translations
 
-# normal 😇
-[[Messages]]
-Code = "last_date_pay_bill"
-Variables = {date="datetime"}
-[Messages.Templates]
-english = "The last date for paying bills is {date}."
-arabic = "آخر أجل لتستديد الفواتير هو {date}"
+To create a new `translations.yaml` file:
 
-# error handling 🥲
-[[Messages]]
-Code = "err_user_access_denied"
-Status = "danger" # optional
-[Messages.Templates]
-english = "Incorrect Username or Password! Try again."
-arabic = "إسم المستخدم أو كلمة المرور غير صحيحة! حاول من جديد."
-
-# error handling 🥲
-[[Messages]]
-Code = "error_stock_limit_exceeded"
-Status = "warning" # optional
-Variables = {name="string", quantity="int"}
-[Messages.Templates]
-english = "Stock limit exceeded! Only {quantity} left in stock {name}."
-arabic = "تم تجاوز حد المخزون! لم يتبقى سوى {quantity} من مخزون {name}."
-````
-
-or just create it by `tarjem init`.
-
-<img src="./screenshot/01.png" alter="init" width=500>
-
-As you see, we split messages in two parts:
-
-| normal messages | error handling messages |
-|----------------|-------------------------|
-| Code = any name you want! | Code name starts with `err` or `error`.  |
-
-## Generate go files
-run `tarjem` to export final go files.
-
-<img src="./screenshot/02.png" alter="generate" width=500>
-
-
-In error case, You will have a pretty cool error messages *(thanks to [cute](https://github.com/zakaria-chahboun/cute) package)* 😍:
-
-<img src="./screenshot/03.png" alter="error screenshot">
-
-In your current folder you will have "gen.messages.go" which contains all *normal* messages. And you will have also "gen.errors.go" which contains all *error handling* messages if exists!
-
-| normal message example | error handling message example|
-|----------------|-------------------------|
-| func CreateLastDatePayBill(date time.Time) (m *Message) | func ReportErrUserAccessDenied() (m *MessageError) |
-
-The result will be like that:
-
-### gen.messages.go
-```go
-package tarjem
-
-import (
-	"fmt"
-	"time"
-)
-
-type Message struct {
-	Code    string
-	Message string
-}
-
-/* Message method */
-func (this *Message) String() string {
-	return fmt.Sprintf("%v: %v", this.Code, this.Message)
-}
-
-/* language type */
-type Lang string
-
-/* to store locally the current language used in app */
-var currentLang Lang
-
-/* to set the current language used in app */
-func SetCurrentLang(language Lang) {
-	currentLang = language
-}
-
-/* enum: Message.Code */
-const (
-	LastDatePayBill = "last_date_pay_bill"
-)
-
-/* enum: Templates.{lang} */
-const (
-	LangArabic  Lang = "arabic"
-	LangEnglish Lang = "english"
-)
-
-func CreateLastDatePayBill(
-	date time.Time,
-) (m *Message) {
-	m = &Message{}
-	m.Code = LastDatePayBill
-	switch currentLang {
-	case LangArabic:
-		m.Message = fmt.Sprintf("آخر أجل لتستديد الفواتير هو %v", date.Format("2006-01-02 15:04:05"))
-	case LangEnglish:
-		m.Message = fmt.Sprintf("The last date for paying bills is %v.", date.Format("2006-01-02 15:04:05"))
-	}
-	return
-}
+```console
+tarjem init
 ```
 
-### gen.errors.go
-```go
-package tarjem
+Use the `--force` flag to overwrite an existing file:
 
-import (
-	"fmt"
-)
-
-type MessageError struct {
-	Code    string
-	Status  Status // optional
-	Message string
-}
-
-/* MessageError method */
-func (this *MessageError) Error() string {
-	return fmt.Sprintf("%v: %v", this.Code, this.Message)
-}
-
-/* enum: MessageError.Code */
-const (
-	ErrUserAccessDenied     = "err_user_access_denied"
-	ErrorStockLimitExceeded = "error_stock_limit_exceeded"
-)
-
-/* status type */
-type Status string
-
-/* enum: MessageError.Status */
-const (
-	StatusDanger  Status = "danger"
-	StatusWarning Status = "warning"
-)
-
-func ReportErrUserAccessDenied() (m *MessageError) {
-	m = &MessageError{}
-	m.Code = ErrUserAccessDenied
-	m.Status = StatusDanger
-	switch currentLang {
-	case LangArabic:
-		m.Message = fmt.Sprintf("إسم المستخدم أو كلمة المرور غير صحيحة! حاول من جديد.")
-	case LangEnglish:
-		m.Message = fmt.Sprintf("Incorrect Username or Password! Try again.")
-	}
-	return
-}
-
-func ReportErrorStockLimitExceeded(
-	name string,
-	quantity int,
-) (m *MessageError) {
-	m = &MessageError{}
-	m.Code = ErrorStockLimitExceeded
-	m.Status = StatusWarning
-	switch currentLang {
-	case LangArabic:
-		m.Message = fmt.Sprintf("تم تجاوز حد المخزون! لم يتبقى سوى %d من مخزون %s.", quantity, name)
-	case LangEnglish:
-		m.Message = fmt.Sprintf("Stock limit exceeded! Only %d left in stock %s.", quantity, name)
-	}
-	return
-}
+```console
+tarjem init --force
 ```
 
-## Fields
-* Required fields ✅:
-  - Code
-  - [Messages.Templates]
-* Optional fields 🤷:
-  - Status
-  - Variables
+### Exporting Translations
 
-In *[Messages.Templates]* there is no rule to create the name of languages fields. You can write any field name you want:
-```toml
-[Messages.Templates]
-english = "...."
-arabic = "...."
+To generate code from your translations:
 
-#or 
-[Messages.Templates]
-en = "...."
-ar = "...."
-
-#or
-[Messages.Templates]
-anglais = "...."
-arabe = "...."
-
-#or 👀
-[Messages.Templates]
-lang1 = "...."
-lang2 = "...."
-lang3 = "...."
+```console
+tarjem export --lang go
 ```
 
-⚠️ But the languages fields must be identical in all messages.
+Optionally, specify a package name (for Go):
 
-## Variables and Types
-You can add Variables in your templates, These types are allowed:
-
-`int`, `float`, `string`, `date`, `time`, `datetime`
-
-Of course you can add these variables as placeholders in templates. You can call a variable many times in template 👍🏻:
-
-```toml
-[[Messages]]
-Code = "test"
-Variables = {name="string"}
-[Messages.Templates]
-en = "My name is {name}, Can you call me {name} 🤠?"
-fr = "Je m'appelle {name}, pouvez-vous m'appeler {name} 🤠?"
+```console
+tarjem export --lang go --package mypackage
 ```
 
-## Change package name
-As you can see. The generated files has `package tarjem`! You can change it by:
+#### We provide good pacing messages when error happing, examples 
 
-```sh
-# e.g translations
-tarjem -package translations
+![missing placeholder](/screenshot/parse_1.png)
+
+![not user variables in translation](/screenshot/parse_2.png)
+
+![missing translations](/screenshot/parse_3.png)
+
+![unsupported type](/screenshot/parse_4.png)
+
+### Clearing Generated Files
+
+To remove the generated translation file:
+
+```console
+tarjem clear
 ```
 
-## Clear
-run `tarjem clear` if you want to remove the generated go files:
+### Translation File Format
 
-<img src="./screenshot/04.png" alter="clear" width=500>
+The `translations.yaml` file should follow this structure:
 
-## Example
-Now enjoy the simplicity! Also all error messages is located in `gen.errors.go` file, You can easily return it like an `error`:
+```yaml
+welcome:
+  translations:
+    english: "Welcome!"
+    arabic: "أهلاً وسهلاً!"
+
+item_status:
+  variables:
+    name: string
+    count: int
+  translations:
+    english: "{name} is available with {count} in stock."
+    arabic: "العنصر {name} متاح بكمية {count}."
+```
+
+### Generated Code Usage (Go Example)
+
+After exporting, you can use the generated functions in your Go code:
 
 ```go
-package main
-
-import (
-	"time"
-	"fmt"
-	"[YOUR-MODULE]/tarjem"
-)
+import "yourproject/tarjem"
 
 func main() {
-	// choose a language 🇬🇧
-	tarjem.SetCurrentLang(tarjem.LangEnglish)
 
-	// print message
-	m := tarjem.CreateLastDatePayBill(time.Now())
-	fmt.Println("Message: ", m.Message)
+	// Set Arabic as langues
+	tarjem.SetCurrentLang(tarjem.LangArabic)
+    
+	// Print the translations
+    fmt.Println(tarjem.Welcome()) // Output: أهلا وسهلا!
+	fmt.Println(tarjem.ItemStatus("تفاح", 5)) // Output: العنصر تفاح متاح بكمية 5.
 
-	// error case 🐞
-	err := login("@captin_bassam","123456")
-  	if err != nil {
-    	panic(err)
-  	}
-}
+	// Set English as langues
+    tarjem.SetCurrentLang(tarjem.LangEnglish)
 
-func login(name, pass string) error {
-  // a way of login 👀
-  if name == "@captain_majid" && pass == "gooooal"{
-	return nil
-  }
-  return tarjem.ReportErrUserAccessDenied()
+
+	// Print the translations
+    fmt.Println(tarjem.Welcome()) // Output: Welcome!
+    fmt.Println(tarjem.ItemStatus("Apple", 5)) // Output: Apple is available with 5 in stock.
 }
 ```
 
-## Other arguments
-You will find all other arguments in help:
-```sh
-tarjem help
+## Supported Variable Types
+
+* `string`
+* `int`
+* `float`
+* `date`
+* `time`
+* `datetime`
+
+## Language Field Consistency in Translations
+
+When defining translation fields, you have flexibility in naming the language keys. You can use any format you prefer:
+
+```yaml
+# Option 1
+welcome:
+  translations:
+    arabic: "أهلاً وسهلاً!"
+    english: "Welcome!"
+
+# Option 2
+welcome:
+  translations:
+    ar: "أهلاً وسهلاً!"
+    en: "Welcome!"
+
+# Option 3
+welcome:
+  translations:
+    lang1: "أهلاً وسهلاً!"
+    lang2: "Welcome!"
 ```
+
+> [!IMPORTANT]
+> However, the language keys must be consistent across all translation entries.
+
 
 ## Contribute 🌻
+
 Feel free to contribute or propose a feature or share your idea with us!
 
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
 -----
-twitter: [@zaki_chahboun](https://twitter.com/Zaki_Chahboun)
+Follow me on X: [@zaki_chahboun](https://x.com/Zaki_Chahboun)

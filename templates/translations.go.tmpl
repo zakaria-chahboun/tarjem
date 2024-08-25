@@ -1,0 +1,63 @@
+package {{ .PackageName }}
+
+{{ if gt (len .Messages) 0 -}}
+import (
+    "fmt"
+    {{- if containsDateType .UniqueVariableTypes }}
+    "time"
+    {{- end }}
+)
+{{- end }}
+
+// Set Date & Time format 
+const (
+    DATE_FORMAT = "{{ .DateFormat }}"
+    TIME_FORMAT = "{{ .TimeFormat }}"
+    DATETIME_FORMAT = "{{ .DateTimeFormat }}"
+)
+
+// Language type
+type Lang string
+
+// Current language
+var currentLang Lang
+
+// Change the current language
+func SetCurrentLang(language Lang) {
+    currentLang = language
+}
+
+// Enum: Languages in translations
+const (
+    {{- range .UniqueLangs }}
+    Lang{{ . | titleCase }} Lang = "{{ . }}"
+    {{- end }}
+)
+
+{{ range $name, $message := .Messages }}
+// Translation {{ $name | snakeCaseToCamelCase }}
+func {{ $name | snakeCaseToCamelCase }}(
+    {{- range $variable, $type := $message.Variables }}
+    {{ $variable }} {{ $type | convertToGoType }},
+    {{- end }}
+) string {
+    {{- if eq (len $message.Variables) 0 }}
+    switch currentLang {
+        {{- range $lang, $translation := $message.Translations }}
+        case Lang{{ $lang | titleCase }}:
+            return fmt.Sprintf("{{ $translation }}")
+        {{- end }}
+    }
+    {{- else }}
+    switch currentLang {
+        {{- range $lang, $translation := $message.Translations }}
+        {{- $formattedTranslation := replacePlaceholdersWithFormat $translation $message.Variables }}
+        {{- $translationParameters := correctPlaceholders $translation $message.Variables }}
+        case Lang{{ $lang | titleCase }}:
+            return fmt.Sprintf("{{ $formattedTranslation }}", {{ join $translationParameters "," }})
+        {{- end }}
+    }
+    {{- end }}
+    return ""
+}
+{{ end }}

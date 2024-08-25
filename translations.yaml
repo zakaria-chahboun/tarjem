@@ -1,0 +1,34 @@
+welcome:
+  translations:
+    arabic: "أهلاً وسهلاً!"
+    english: "Welcome!"
+
+item_status:
+  variables:
+    item_name: string
+    item_count: int
+  translations:
+    arabic: "العنصر {item_name} متاح بكمية {item_count}."
+    english: "{item_name} is available with {item_count} in stock."
+
+amount_due:
+  variables:
+    amount: float
+  translations:
+    arabic: "المبلغ المطلوب دفعه هو {amount} درهم."
+    english: "The amount due is {amount} MAD."
+
+event_schedule:
+  variables:
+    event_start: datetime
+  translations:
+    arabic: "الحدث سيبدأ في {event_start}."
+    english: "The event will start at {event_start}."
+
+meeting_notice:
+  variables:
+    meeting_date: date
+    meeting_time: time
+  translations:
+    arabic: "اجتماعك مقرر في {meeting_date} الساعة {meeting_time}."
+    english: "Your meeting is scheduled for {meeting_date} at {meeting_time}."
