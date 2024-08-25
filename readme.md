@@ -4,11 +4,7 @@ Support me to be an independent open-source programmer 💟
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U7U3FQ2JA)
 
-# Tarjem
-
-Tarjem is a powerful CLI tool for managing translations in your projects. It simplifies the process of internationalization by generating type-safe code from YAML translation files.
-
-> *tarjem ترجم is an arabic word means 'translate'*
+*tarjem ترجم is an arabic word means 'translate'*
 
 ## Features
 
