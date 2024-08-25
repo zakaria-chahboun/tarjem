@@ -1,4 +1,4 @@
-module github.com/zakaria-chahboun/tarjem
+module github.com/zakaria-chahboun/tarjem/v2
 
 go 1.18
 
