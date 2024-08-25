@@ -43,8 +43,10 @@ Stay tuned for updates!
 To install Tarjem, use the following command:
 
 ```console
-go install github.com/yourusername/tarjem@latest
+go install github.com/zakaria-chahboun/tarjem@latest
 ```
+
+Or you can directly download the latest version for each OS from the [releases](https://github.com/zakaria-chahboun/tarjem/releases) page.
 
 ## Usage
 
